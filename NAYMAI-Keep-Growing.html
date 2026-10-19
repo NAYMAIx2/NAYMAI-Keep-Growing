@@ -1,0 +1,2623 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antigravity Wealth &amp; Portfolio Tracker</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Prompt', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.03);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.6);
+    }
+    /* Theme support: keep the existing light design and provide a complete dark palette. */
+    body.dark-mode { background: #0b1120 !important; color: #e2e8f0 !important; color-scheme: dark; }
+    body.dark-mode .bg-white { background-color: #111c2e !important; }
+    body.dark-mode .bg-slate-50, body.dark-mode .bg-slate-50\/70, body.dark-mode .bg-slate-50\/60,
+    body.dark-mode .bg-slate-100 { background-color: #1e293b !important; }
+    body.dark-mode .bg-amber-50\/40, body.dark-mode .bg-amber-50 { background-color: #292316 !important; }
+    body.dark-mode .bg-purple-50 { background-color: #2b2142 !important; }
+    body.dark-mode .bg-emerald-50 { background-color: #12352f !important; }
+    body.dark-mode .bg-sky-50 { background-color: #102e43 !important; }
+    body.dark-mode .bg-indigo-50 { background-color: #1e1b4b !important; }
+    body.dark-mode .text-slate-900, body.dark-mode .text-slate-800, body.dark-mode .text-slate-700,
+    body.dark-mode .text-slate-600, body.dark-mode .text-slate-500 { color: #e2e8f0 !important; }
+    body.dark-mode .text-slate-400 { color: #94a3b8 !important; }
+    body.dark-mode .border-slate-100, body.dark-mode .border-slate-200, body.dark-mode .border-slate-200\/80,
+    body.dark-mode .border-slate-300, body.dark-mode .border-amber-300, body.dark-mode .border-amber-300\/80,
+    body.dark-mode .border-purple-100, body.dark-mode .border-emerald-100, body.dark-mode .border-sky-100,
+    body.dark-mode .border-indigo-100 { border-color: #334155 !important; }
+    body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background-color: #0f172a !important; color: #e2e8f0 !important; border-color: #475569 !important; }
+    body.dark-mode input::placeholder, body.dark-mode textarea::placeholder { color: #94a3b8 !important; }
+    body.dark-mode .hover\:bg-slate-50:hover, body.dark-mode .hover\:bg-slate-50\/70:hover { background-color: #1e293b !important; }
+    body.dark-mode .hover\:bg-slate-200:hover { background-color: #334155 !important; }
+    body.dark-mode .bg-amber-50\/40 { border-color: #785b23 !important; }
+    body.dark-mode #lineChartSvg text { fill: #cbd5e1; }
+    body.dark-mode #lineChartSvg line { stroke: #334155; }
+    body.dark-mode #lineChartSvg circle { stroke: #111c2e; }
+  </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 min-h-screen antialiased p-4 sm:p-6 lg:p-8 flex flex-col">
+
+  <div class="max-w-6xl mx-auto w-full space-y-6">
+
+    <!-- TOP HEADER -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-bold text-base sm:text-lg text-slate-900 leading-tight">Antigravity Wealth &amp; Portfolio Tracker</h1>
+          <p class="text-xs text-slate-400 font-medium">ระบบติดตามพอร์ตการลงทุนและเงินสดสำรองส่วนบุคคล (บาท THB)</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Cloud Sync Status Pill -->
+        <button onclick="openCloudSyncModal()" id="btnCloudSync" class="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition flex items-center gap-1.5" title="ตั้งค่าเชื่อมต่อคลาวด์และล็อกอิน">
+          <span>☁️</span> <span id="cloudStatusLabel">Local Storage</span>
+        </button>
+
+        <!-- Backup & Export Buttons -->
+        <button onclick="exportBackupJSON()" class="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition flex items-center gap-1" title="สำรองข้อมูลทั้งหมดเป็นไฟล์ JSON">
+          <span>💾</span> <span>สำรอง JSON</span>
+        </button>
+        <button onclick="triggerImportJSON()" class="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition flex items-center gap-1" title="นำเข้าข้อมูลจากไฟล์ JSON">
+          <span>📥</span> <span>นำเข้า JSON</span>
+        </button>
+        <input type="file" id="jsonFileInput" accept=".json" class="hidden" onchange="handleJSONFileImport(event)">
+
+        <button onclick="exportTransactionsCSV()" class="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition flex items-center gap-1" title="ส่งออกประวัติธุรกรรมเป็น CSV (Excel/Sheets)">
+          <span>📊</span> <span>CSV</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button onclick="toggleTheme()" id="btnToggleTheme" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition flex items-center gap-1.5" title="เปลี่ยนโหมดกลางวัน/กลางคืน">
+          <span id="themeIcon">🌙</span><span id="themeLabel">โหมดกลางคืน</span>
+        </button>
+
+        <!-- Settings Toggle (≡) -->
+        <button onclick="toggleSettings()" id="btnToggleSettings" class="px-3.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition flex items-center gap-1.5">
+          <span id="toggleSettingsIcon">≡</span> <span id="toggleSettingsLabel">เปิดการตั้งค่า</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ROW 1: 3 SUMMARY KPI CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      
+      <!-- Card 1: TOTAL NET WORTH (Dark Navy) -->
+      <div class="bg-[#0f172a] text-white p-6 rounded-2xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">สินทรัพย์สุทธิรวม (TOTAL NET WORTH)</span>
+            <span class="text-[11px] font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/50 px-2 py-0.5 rounded-full">
+              เงินฝาก + เงินต้นลงทุน
+            </span>
+          </div>
+          <div class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-1" id="kpiNetWorth">
+            ฿0.00
+          </div>
+        </div>
+
+        <div class="mt-5 pt-3 border-t border-slate-800/80 space-y-1.5 text-xs text-slate-400">
+          <div class="flex items-center justify-between">
+            <span>💧 เงินสด &amp; เงินฝากรวม:</span>
+            <span class="font-semibold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded" id="kpiCashPart">฿0.00</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>📝 เงินต้นลงทุนคงเหลือรวม:</span>
+            <span class="font-semibold text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded" id="kpiInvestPart">฿0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: LIQUID CASH -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">เงินสด &amp; เงินฝากรวม (LIQUID CASH)</span>
+            <span class="text-base">💧</span>
+          </div>
+          <div class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1" id="kpiTotalCash">
+            ฿0.00
+          </div>
+        </div>
+
+        <div class="mt-5 pt-3 border-t border-slate-100 space-y-1.5 text-xs">
+          <div class="flex items-center justify-between text-slate-500">
+            <span>MAKE: <b class="text-slate-800" id="kpiSubMake">฿0</b> | Dime!: <b class="text-slate-800" id="kpiSubDime">฿0</b></span>
+          </div>
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="text-slate-400">สภาพคล่องในระบบ:</span>
+            <span class="font-semibold text-sky-600" id="kpiCashRatio">0.0% ของสินทรัพย์</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: TOTAL INVESTED (เงินต้นลงทุนสะสมรวม) -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">เงินต้นลงทุนคงเหลือรวม (TOTAL INVESTED)</span>
+            <span class="text-base text-purple-400">📝</span>
+          </div>
+          <div class="text-3xl sm:text-4xl font-extrabold text-[#7c3aed] tracking-tight mt-1" id="kpiTotalInvested">
+            ฿0.00
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">*เงินต้นคงเหลือจากธุรกรรมที่บันทึกจริง ไม่ใช่มูลค่าพอร์ตปัจจุบัน</p>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500">🇹🇭 หุ้นไทย:</span>
+            <span class="font-bold text-amber-600" id="kpiInvestedThai">฿0.00</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500">🌍 หุ้นต่างประเทศ:</span>
+            <span class="font-bold text-purple-600" id="kpiInvestedForeign">฿0.00</span>
+          </div>
+          <div class="flex items-center justify-between pt-1 border-t border-slate-50 text-[11px] text-slate-400">
+            <span>สัดส่วนเงินลงทุน:</span>
+            <span class="font-semibold text-purple-600" id="kpiInvestedRatio">0.0% ของสินทรัพย์</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ROW 2: COLLAPSIBLE SETTINGS & BALANCE ADJUSTMENT CARD (Yellow Bordered, Hidden by default) -->
+    <div id="settingsBox" class="hidden bg-amber-50/40 border border-amber-300 rounded-2xl p-5 shadow-2xs space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/60 pb-3">
+        <div>
+          <h2 class="text-xs sm:text-sm font-bold text-amber-900 flex items-center gap-2">
+            <span>⚙️</span> ตั้งค่ายอดเงินต้นตั้งต้นของบัญชี (Initial Starting Balances)
+          </h2>
+          <p class="text-[11px] text-amber-700 mt-0.5">
+            กำหนดยอดยกมาตั้งต้น ณ วันเริ่มต้น ระบบจะนำไปรวมกับประวัติธุรกรรมเพื่อหายอดคงเหลือสุทธิ
+          </p>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-500 font-medium">วันเริ่มต้นยอดยกมา:</span>
+          <input type="date" id="settingAsOfDate" class="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-slate-800 font-medium focus:outline-amber-500">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <!-- MAKE KBank -->
+        <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-2xs">
+          <label class="block text-xs font-medium text-slate-500 mb-1">🏛️ MAKE by KBank (ยอดตั้งต้น บาท)</label>
+          <input type="number" id="settingMakeKBank" step="any" min="0" class="w-full font-bold text-base text-slate-900 border-b border-slate-200 pb-1 focus:outline-hidden focus:border-blue-500">
+          <div class="text-[11px] text-slate-400 mt-1" id="settingMakeCurrentHint">คงเหลือสุทธิปัจจุบัน: ฿0</div>
+        </div>
+
+        <!-- Dime Save -->
+        <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-2xs">
+          <label class="block text-xs font-medium text-slate-500 mb-1">💚 Dime! Save (ยอดตั้งต้น บาท)</label>
+          <input type="number" id="settingDimeSave" step="any" min="0" class="w-full font-bold text-base text-slate-900 border-b border-slate-200 pb-1 focus:outline-hidden focus:border-emerald-500">
+          <div class="text-[11px] text-slate-400 mt-1" id="settingDimeCurrentHint">คงเหลือสุทธิปัจจุบัน: ฿0</div>
+        </div>
+
+        <!-- Invested Thai -->
+        <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-2xs">
+          <label class="block text-xs font-medium text-slate-500 mb-1">🇹🇭 เงินต้นหุ้นไทย (ยอดตั้งต้น บาท)</label>
+          <input type="number" id="settingInvestedThai" step="any" min="0" class="w-full font-bold text-base text-amber-700 border-b border-slate-200 pb-1 focus:outline-hidden focus:border-amber-500">
+          <div class="text-[11px] text-slate-400 mt-1" id="settingThaiCurrentHint">เงินต้นคงเหลือปัจจุบัน: ฿0</div>
+        </div>
+
+        <!-- Invested Foreign -->
+        <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-2xs">
+          <label class="block text-xs font-medium text-slate-500 mb-1">🌍 เงินต้นหุ้นต่างประเทศ (ยอดตั้งต้น บาท)</label>
+          <input type="number" id="settingInvestedForeign" step="any" min="0" class="w-full font-bold text-base text-purple-700 border-b border-slate-200 pb-1 focus:outline-hidden focus:border-purple-500">
+          <div class="text-[11px] text-slate-400 mt-1" id="settingForeignCurrentHint">เงินต้นคงเหลือปัจจุบัน: ฿0</div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-1">
+        <button type="button" onclick="cancelSettings()" class="px-4 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition">
+          ยกเลิก
+        </button>
+        <button type="button" onclick="saveSettings()" class="px-4 py-1.5 text-xs font-semibold text-white bg-[#d97706] hover:bg-amber-600 rounded-lg transition shadow-2xs">
+          บันทึกการตั้งค่ายอดตั้งต้น
+        </button>
+      </div>
+    </div>
+
+    <!-- ROW 3: CASH BALANCES, MONTHLY SAVINGS COMPARISON & DONUT ASSET ALLOCATION -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left Column: 2 Cash Accounts + Monthly Savings Comparison (Col-span 2) -->
+      <div class="lg:col-span-2 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+            <span class="text-emerald-500">⭐</span> บัญชีเงินสดและสรุปเงินออมรายเดือน (Cash &amp; Monthly Savings)
+          </h2>
+          <span class="text-xs font-medium text-slate-400">
+            สกุลเงิน: บาท (THB)
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          
+          <!-- Card 1: MAKE by KBank -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm text-slate-600">
+                  🏛️
+                </div>
+                <span class="text-[11px] font-medium bg-sky-50 text-sky-600 border border-sky-100 px-2 py-0.5 rounded-full">
+                  เงินสำรอง (THB)
+                </span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-sm">MAKE by KBank</h3>
+              <p class="text-xs text-slate-400 mt-0.5">เงินสดบาท / Cloud Pockets</p>
+            </div>
+            <div class="mt-5 text-2xl font-bold text-slate-900" id="cardBalMakeKBank">
+              ฿0.00
+            </div>
+          </div>
+
+          <!-- Card 2: Dime! Save -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-sm text-emerald-600">
+                  💚
+                </div>
+                <span class="text-[11px] font-medium bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full">
+                  เงินสดบาท (THB)
+                </span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-sm">Dime! Save</h3>
+              <p class="text-xs text-slate-400 mt-0.5">เงินฝากดอกเบี้ยสูงพักไว้</p>
+            </div>
+            <div class="mt-5 text-2xl font-bold text-emerald-600" id="cardBalDimeSave">
+              ฿0.00
+            </div>
+          </div>
+
+          <!-- Card 3: ระบบเปรียบเทียบเงินออมรายเดือน (แทน Dime! FCD เดิม) -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex flex-col justify-between" id="cardMonthlyComparison">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-sm text-indigo-600">
+                  📊
+                </div>
+                <span class="text-[11px] font-medium bg-indigo-50 text-indigo-600 border border-indigo-100 px-2 py-0.5 rounded-full" id="savingsComparisonBadge">
+                  เทียบเดือนก่อนหน้า
+                </span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-sm">เปรียบเทียบเงินออมรายเดือน</h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">เงินสดรวม (MAKE + Dime! Save)</p>
+            </div>
+
+            <div class="mt-3 space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400" id="labelCurrMonthSavings">เดือนปัจจุบัน:</span>
+                <span class="font-bold text-slate-900" id="valCurrMonthSavings">฿0.00</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400" id="labelPrevMonthSavings">เดือนก่อนหน้า:</span>
+                <span class="font-medium text-slate-700" id="valPrevMonthSavings">ไม่มีข้อมูลเปรียบเทียบ</span>
+              </div>
+              <div class="pt-2 border-t border-slate-100 flex items-center justify-between" id="rowSavingsDiff">
+                <span class="text-slate-400">เปลี่ยนแปลง:</span>
+                <span class="font-bold" id="valSavingsDiff">ไม่มีข้อมูลเดือนก่อนหน้า</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right Column: Asset Allocation Donut Chart (Col-span 1) -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
+        <h2 class="text-sm font-bold text-slate-900 flex items-center gap-1.5 mb-2">
+          <span>🍩</span> สัดส่วนจัดสรรสินทรัพย์ (Asset Allocation)
+        </h2>
+
+        <!-- Donut Chart Container -->
+        <div class="relative flex items-center justify-center my-1 h-44">
+          <svg class="w-40 h-40 transform -rotate-90" viewBox="0 0 100 100" id="donutChartSvg">
+            <!-- Segments rendered dynamically via JS -->
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">รวมสินทรัพย์</span>
+            <span class="text-xs font-bold text-slate-800" id="donutCenterLabel">100%</span>
+          </div>
+        </div>
+
+        <!-- Donut Legend -->
+        <div class="grid grid-cols-2 gap-x-2 gap-y-1.5 text-[11px] text-slate-600 pt-2 border-t border-slate-100">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#0ea5e9]"></span>
+            <span class="truncate">MAKE by KBank</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
+            <span class="truncate">Dime! Save</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span>
+            <span class="truncate">หุ้นไทย</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#8b5cf6]"></span>
+            <span class="truncate">หุ้นต่างประเทศ</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ROW 4: TRANSACTION ACTION & TRANSACTION HISTORY -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left Column: Add Transaction Form (Col-span 1) -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs font-bold">⚡</span>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 leading-tight">บันทึกธุรกรรมการเงิน</h3>
+              <p class="text-[11px] text-slate-400">เลือกประเภทรายการเพื่ออัปเดตยอดเงินอย่างถูกต้อง</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transaction Type Selector Buttons -->
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">ประเภทธุรกรรม</label>
+          <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-medium">
+            <button type="button" id="tab_deposit" onclick="setTxType('deposit')" class="py-1.5 px-2 rounded-lg transition bg-white text-blue-700 shadow-2xs font-semibold flex items-center justify-center gap-1">
+              <span>📥</span> เติมเงินเข้า
+            </button>
+            <button type="button" id="tab_transfer" onclick="setTxType('transfer')" class="py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1">
+              <span>🔄</span> โอนระหว่างบัญชี
+            </button>
+            <button type="button" id="tab_invest_thai" onclick="setTxType('invest_thai')" class="py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1">
+              <span>🇹🇭</span> ลงทุนหุ้นไทย
+            </button>
+            <button type="button" id="tab_invest_foreign" onclick="setTxType('invest_foreign')" class="py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1">
+              <span>🌍</span> ลงทุนหุ้นนอก
+            </button>
+            <button type="button" id="tab_withdraw_investment" onclick="setTxType('withdraw_investment')" class="py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1">
+              <span>↩️</span> ถอนเงินลงทุน
+            </button>
+            <button type="button" id="tab_expense" onclick="setTxType('expense')" class="py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1">
+              <span>💸</span> ถอนใช้จ่าย
+            </button>
+          </div>
+        </div>
+
+        <form id="txForm" novalidate onsubmit="handleTransactionFormSubmit(event)" class="space-y-3 text-xs">
+          
+          <!-- Date Input -->
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">วันที่ทำรายการ</label>
+            <input type="date" id="txInputDate" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 font-medium focus:bg-white focus:outline-blue-500">
+          </div>
+
+          <!-- Dynamic Form Group 1: DEPOSIT -->
+          <div id="fg_deposit" class="space-y-3">
+            <div>
+              <label class="block font-medium text-slate-600 mb-1">เลือกบัญชีปลายทางที่ต้องการเติมเงินสดเข้า</label>
+              <select id="depositTargetAccount" class="w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:outline-blue-500 text-slate-800 font-medium">
+                <option value="make_kbank">🏛️ MAKE by KBank (THB)</option>
+                <option value="dime_save">💚 Dime! Save (THB)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Dynamic Form Group 2: TRANSFER -->
+          <div id="fg_transfer" class="hidden space-y-3 p-3 bg-sky-50/60 rounded-xl border border-sky-100">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="font-medium text-slate-700">บัญชีต้นทาง (หักเงินออก)</label>
+                <span class="text-[11px] text-sky-700 font-semibold" id="transferFromHint">คงเหลือ: ฿0</span>
+              </div>
+              <select id="transferFromAccount" onchange="handleTransferFromChange()" class="w-full border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 font-medium focus:outline-blue-500">
+                <option value="make_kbank">🏛️ MAKE by KBank</option>
+                <option value="dime_save">💚 Dime! Save</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">บัญชีปลายทาง (รับเงินเข้า)</label>
+              <select id="transferToAccount" onchange="handleTransferToChange()" class="w-full border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 font-medium focus:outline-blue-500">
+                <option value="dime_save">💚 Dime! Save</option>
+                <option value="make_kbank">🏛️ MAKE by KBank</option>
+              </select>
+            </div>
+            <p class="text-[10px] text-sky-700 leading-tight">
+              *การโอนระหว่างบัญชีไม่ทำให้ยอดเงินสดรวมเปลี่ยนแปลง และไม่นับเป็นรายได้/รายจ่ายใหม่
+            </p>
+          </div>
+
+          <!-- Dynamic Form Group 3: INVEST THAI -->
+          <div id="fg_invest_thai" class="hidden space-y-2 p-3 bg-amber-50/50 rounded-xl border border-amber-200 text-amber-900 text-xs">
+            <div class="font-bold flex items-center justify-between">
+              <span class="flex items-center gap-1"><span>🇹🇭</span> ลงทุนในหุ้นไทย</span>
+              <span class="text-[11px] text-amber-700 font-semibold" id="investThaiDimeHint">Dime! Save คงเหลือ: ฿0</span>
+            </div>
+            <p class="text-[11px] text-amber-800 mt-0.5">
+              ระบบจะหักเงินสดจาก <b>Dime! Save</b> และนำไปเพิ่มใน <b>เงินต้นหุ้นไทย</b>
+            </p>
+          </div>
+
+          <!-- Dynamic Form Group 4: INVEST FOREIGN -->
+          <div id="fg_invest_foreign" class="hidden space-y-2 p-3 bg-purple-50 rounded-xl border border-purple-100 text-purple-900 text-xs">
+            <div class="font-bold flex items-center justify-between">
+              <span class="flex items-center gap-1"><span>🌍</span> ลงทุนในหุ้นต่างประเทศ</span>
+              <span class="text-[11px] text-purple-700 font-semibold" id="investForeignDimeHint">Dime! Save คงเหลือ: ฿0</span>
+            </div>
+            <p class="text-[11px] text-purple-700 mt-0.5">
+              ระบบจะหักเงินสดจาก <b>Dime! Save</b> และนำไปเพิ่มใน <b>เงินต้นหุ้นต่างประเทศ</b> (บันทึกเป็นเงินบาท ไม่ต้องแปลง USD)
+            </p>
+          </div>
+
+          <!-- Dynamic Form Group 5: WITHDRAW INVESTMENT -->
+          <div id="fg_withdraw_investment" class="hidden space-y-3 p-3 bg-indigo-50/60 rounded-xl border border-indigo-100">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="font-medium text-slate-700">ถอนเงินลงทุนจากพอร์ต</label>
+                <span class="text-[11px] text-indigo-700 font-semibold" id="withdrawSourceHint">เงินต้นคงเหลือ: ฿0</span>
+              </div>
+              <select id="withdrawSourceInvestment" onchange="handleWithdrawSourceChange()" class="w-full border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 font-medium focus:outline-indigo-500">
+                <option value="thai">🇹🇭 พอร์ตหุ้นไทย</option>
+                <option value="foreign">🌍 พอร์ตหุ้นต่างประเทศ</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">รับเงินเข้าบัญชีปลายทาง</label>
+              <select id="withdrawToAccount" class="w-full border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 font-medium focus:outline-indigo-500">
+                <option value="dime_save">💚 Dime! Save</option>
+                <option value="make_kbank">🏛️ MAKE by KBank</option>
+              </select>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="font-medium text-slate-700">จำนวนเงินต้นที่ต้องการตัดออก (บาท)</label>
+                <span class="text-[10px] text-rose-500">*ต้องระบุเงินต้น</span>
+              </div>
+              <input type="number" id="withdrawPrincipalDeducted" step="any" min="0" placeholder="เช่น 5000" class="w-full font-bold text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-indigo-500 text-slate-900">
+              <p class="text-[10px] text-slate-400 mt-0.5">*ต้องไม่เกินเงินต้นคงเหลือในหมวดนั้น</p>
+            </div>
+          </div>
+
+          <!-- Dynamic Form Group 6: EXPENSE -->
+          <div id="fg_expense" class="hidden space-y-3 p-3 bg-rose-50/50 rounded-xl border border-rose-100">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="font-medium text-slate-700">หักเงินจากบัญชี</label>
+                <span class="text-[11px] text-rose-700 font-semibold" id="expenseFromHint">คงเหลือ: ฿0</span>
+              </div>
+              <select id="expenseFromAccount" onchange="handleExpenseFromChange()" class="w-full border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 font-medium focus:outline-rose-500">
+                <option value="make_kbank">🏛️ MAKE by KBank</option>
+                <option value="dime_save">💚 Dime! Save</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">หมวดหมู่ค่าใช้จ่าย</label>
+              <select id="expenseCategory" class="w-full border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 font-medium focus:outline-rose-500">
+                <option value="ค่าอาหารและเครื่องดื่ม">🍔 ค่าอาหารและเครื่องดื่ม</option>
+                <option value="บิลและค่าสาธารณูปโภค">💡 บิลและค่าสาธารณูปโภค</option>
+                <option value="ค่าเดินทางและยานพาหนะ">🚗 ค่าเดินทางและยานพาหนะ</option>
+                <option value="ซื้อของและช้อปปิ้ง">🛍️ ซื้อของและช้อปปิ้ง</option>
+                <option value="สุขภาพและรักษาพยาบาล">💊 สุขภาพและรักษาพยาบาล</option>
+                <option value="ค่าใช้จ่ายทั่วไป">📝 ค่าใช้จ่ายทั่วไป</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Amount Input (Used by deposit, transfer, invest, withdraw cash received, expense) -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="font-medium text-slate-600" id="txAmountLabel">จำนวนเงิน (บาท)</label>
+              <span class="text-[10px] text-slate-400" id="txAmountSubHint"></span>
+            </div>
+            <input type="number" id="txInputAmount" step="any" min="0" placeholder="0.00" class="w-full font-bold text-sm border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:outline-emerald-500 text-slate-900">
+          </div>
+
+          <!-- Note Input -->
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">หมายเหตุ / วัตถุประสงค์ (ระบุหรือไม่ก็ได้)</label>
+            <input type="text" id="txInputNote" placeholder="เช่น เงินเดือน, ซื้อ DCA, ค่าน้ำไฟ" class="w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:outline-emerald-500">
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="btnSubmitTx" class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition shadow-2xs flex items-center justify-center gap-1.5 mt-2">
+            <span>ตรวจสอบและบันทึกรายการ</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Right Column: Transaction History (Col-span 2) -->
+      <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
+        <div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-3 border-b border-slate-100 gap-2">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <span>📑</span> ประวัติรายการธุรกรรม (มีปุ่มแก้ไข ✏️ และลบ 🗑️)
+              </h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">คำนวณย้อนหลังตามประวัติจริง ป้องกันยอดเงินติดลบ</p>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <select id="filterTxType" onchange="renderTransactionTable()" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-slate-700">
+                <option value="all">ทั้งหมดทุกประเภท</option>
+                <option value="deposit">📥 เติมเงินเข้า</option>
+                <option value="transfer">🔄 โอนระหว่างบัญชี</option>
+                <option value="invest_thai">🇹🇭 ลงทุนหุ้นไทย</option>
+                <option value="invest_foreign">🌍 ลงทุนหุ้นนอก</option>
+                <option value="withdraw_investment">↩️ ถอนเงินลงทุน</option>
+                <option value="expense">💸 ถอนใช้จ่าย</option>
+              </select>
+              <span class="text-xs text-slate-400 font-medium whitespace-nowrap" id="historyCountBadge">ทั้งหมด 0 รายการ</span>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="text-slate-400 border-b border-slate-100 font-medium">
+                  <th class="py-2 px-3">วันที่</th>
+                  <th class="py-2 px-3">ประเภท</th>
+                  <th class="py-2 px-3">บัญชี / รายละเอียด</th>
+                  <th class="py-2 px-3">หมายเหตุ</th>
+                  <th class="py-2 px-3 text-right">จำนวนเงิน</th>
+                  <th class="py-2 px-2 text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="transactionTableBody" class="divide-y divide-slate-50 text-slate-700">
+                <!-- Rendered dynamically via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-1">
+          <span>*ระบบตรวจสอบความถูกต้องย้อนหลังทุกรายการ เพื่อให้ยอดคงเหลือตรงกับประวัติจริงเสมอ</span>
+          <span class="text-[10px] text-emerald-600 font-medium">✓ ตรวจสอบยอดเงินอัตโนมัติ</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ROW 5: MONTHLY RETURN TRACKER (DIME! LINE NOTIFICATION) & TO-DO CHECKLIST -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Monthly Return Tracker (Col-span 2) -->
+      <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span class="text-blue-500">📈</span> ระบบติดตามผลตอบแทนรายเดือน (Dime! LINE Notification)
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              กรอก % กำไร/ติดลบ จาก LINE แจ้งเตือนสิ้นเดือนของ Dime! เพื่อพลอตกราฟเส้นแนวโน้มพอร์ต
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600" id="badgeLatestReturn">
+              ล่าสุด: 0.00%
+            </span>
+          </div>
+        </div>
+
+        <!-- Inline Quick Input Bar -->
+        <form onsubmit="handleQuickReturnSubmit(event)" class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 flex flex-wrap sm:flex-nowrap items-center gap-2 text-xs">
+          <div class="w-full sm:w-36">
+            <input type="month" id="lineMonthInput" required class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 font-medium focus:outline-blue-500">
+          </div>
+          <div class="w-full sm:w-36 relative">
+            <input type="number" id="linePercentInput" step="0.01" required placeholder="% ผลตอบแทน" class="w-full bg-white border border-slate-200 rounded-lg pl-2.5 pr-6 py-1.5 font-bold text-slate-900 focus:outline-blue-500">
+            <span class="absolute right-2.5 top-1.5 text-slate-400 font-bold">%</span>
+          </div>
+          <div class="flex-1 w-full sm:w-auto">
+            <input type="text" id="lineNoteInput" placeholder="หมายเหตุ (เช่น ตลาดฟื้น, ได้ปันผล)" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-blue-500">
+          </div>
+          <button type="submit" class="w-full sm:w-auto px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition shadow-2xs whitespace-nowrap">
+            + บันทึกผลตอบแทน
+          </button>
+        </form>
+
+        <!-- Line Chart Container -->
+        <div>
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-1 px-1">
+            <div class="flex items-center gap-3">
+              <span class="flex items-center gap-1 text-slate-600 font-medium">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> % ผลตอบแทน
+              </span>
+              <span class="flex items-center gap-1 text-slate-400">
+                <span class="w-3 h-0.5 bg-slate-300 inline-block"></span> เส้น 0.00%
+              </span>
+            </div>
+            <div id="chartStatsSummary" class="text-slate-500 font-medium"></div>
+          </div>
+
+          <div class="w-full bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 relative h-56 flex items-center justify-center">
+            <div id="lineChartTooltip" class="absolute pointer-events-none hidden bg-slate-900 text-white text-xs px-2.5 py-1.5 rounded-lg shadow-md z-20"></div>
+            <svg id="lineChartSvg" class="w-full h-full overflow-visible"></svg>
+            <div id="lineChartEmptyMsg" class="absolute hidden text-center text-xs text-slate-400">
+              ยังไม่มีข้อมูลผลตอบแทนรายเดือน กรุณากรอกเดือนและ % ด้านบน
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapsible Monthly Return History Table (Edit / Delete) -->
+        <div class="pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between">
+            <button type="button" onclick="toggleReturnsTable()" class="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+              <span id="returnsTableToggleIcon">▶</span> <span>ประวัติผลตอบแทนรายเดือนทั้งหมด (<span id="returnsCountLabel">0</span> เดือน) - คลิกเพื่อแก้ไข/ลบ</span>
+            </button>
+          </div>
+
+          <div id="returnsTableContainer" class="hidden mt-3 overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="text-slate-400 border-b border-slate-100 font-medium">
+                  <th class="py-2 px-3">เดือน</th>
+                  <th class="py-2 px-3">ผลตอบแทน (%)</th>
+                  <th class="py-2 px-3">หมายเหตุ</th>
+                  <th class="py-2 px-2 text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="returnsTableBody" class="divide-y divide-slate-50 text-slate-700">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- To-Do List Checklist (Col-span 1) -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <span>📝</span> To-Do List ประจำเดือน
+              </h2>
+              <p class="text-[11px] text-slate-400">Checklist กิจวัตรสภาพคล่อง &amp; ลงทุน</p>
+            </div>
+            <button onclick="resetMonthlyTodos()" class="text-[11px] text-slate-500 hover:text-slate-800 bg-slate-100 px-2 py-0.5 rounded transition">
+              รีเซ็ต
+            </button>
+          </div>
+
+          <!-- Add Todo -->
+          <form onsubmit="handleAddTodo(event)" class="flex gap-1.5 mb-3">
+            <input type="text" id="newTodoInput" placeholder="เพิ่มกิจวัตรการเงิน..." required class="flex-1 text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:bg-white focus:outline-emerald-500">
+            <button type="submit" class="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">
+              +
+            </button>
+          </form>
+
+          <!-- Todo List -->
+          <div class="space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar pr-1" id="todoListContainer">
+            <!-- Rendered dynamically via JS -->
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+          <span id="todoProgressLabel">เสร็จ 0/0 รายการ</span>
+          <div class="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div id="todoProgressBar" class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL 1: TRANSACTION CONFIRMATION SUMMARY MODAL -->
+  <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+          <span>🔍</span> ตรวจสอบและยืนยันรายการธุรกรรม
+        </h3>
+        <button onclick="closeConfirmModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs" id="confirmModalBody">
+        <!-- Injected via JS -->
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+        <button type="button" onclick="closeConfirmModal()" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+          ยกเลิก
+        </button>
+        <button type="button" id="btnExecuteConfirm" onclick="executePendingTransaction()" class="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-xs flex items-center gap-1.5">
+          <span>ยืนยันการบันทึก</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: EDIT TRANSACTION MODAL -->
+  <div id="editTxModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+          <span>✏️</span> แก้ไขรายการธุรกรรม
+        </h3>
+        <button onclick="closeEditTxModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <form id="editTxForm" novalidate onsubmit="handleEditTxSubmit(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="editTxId">
+        
+        <div>
+          <label class="block font-medium text-slate-600 mb-1">วันที่ทำรายการ</label>
+          <input type="date" id="editTxDate" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 font-medium focus:bg-white focus:outline-blue-500">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-600 mb-1">ประเภทธุรกรรม</label>
+          <input type="text" id="editTxTypeLabel" readonly class="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-slate-600 font-medium">
+        </div>
+
+        <div id="editTxAccountGroup">
+          <!-- Dynamic details based on tx type -->
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="font-medium text-slate-600" id="editTxAmountLabel">จำนวนเงิน (บาท)</label>
+          </div>
+          <input type="number" id="editTxAmount" step="any" min="0" class="w-full font-bold text-sm border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:outline-blue-500 text-slate-900">
+        </div>
+
+        <div id="editTxWithdrawPrincipalGroup" class="hidden">
+          <label class="block font-medium text-slate-600 mb-1">เงินต้นที่ตัดออก (บาท)</label>
+          <input type="number" id="editTxPrincipalDeducted" step="any" min="0.01" class="w-full font-bold text-sm border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:outline-blue-500 text-slate-900">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-600 mb-1">หมายเหตุ</label>
+          <input type="text" id="editTxNote" class="w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:outline-blue-500">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeEditTxModal()" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+            ยกเลิก
+          </button>
+          <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-xs">
+            บันทึกการแก้ไข
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: EDIT MONTHLY RETURN MODAL -->
+  <div id="editReturnModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+          <span>✏️</span> แก้ไขผลตอบแทนรายเดือน
+        </h3>
+        <button onclick="closeEditReturnModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <form onsubmit="handleEditReturnSubmit(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="editReturnId">
+        <div>
+          <label class="block font-medium text-slate-600 mb-1">ประจำเดือน</label>
+          <input type="month" id="editReturnMonth" required class="w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:outline-blue-500 text-slate-800">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-600 mb-1">% ผลตอบแทน</label>
+          <input type="number" id="editReturnPercent" step="0.01" required class="w-full font-bold text-sm border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:outline-blue-500 text-slate-900">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-600 mb-1">หมายเหตุ</label>
+          <input type="text" id="editReturnNote" class="w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:outline-blue-500">
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeEditReturnModal()" class="px-3.5 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">
+            ยกเลิก
+          </button>
+          <button type="submit" class="px-4 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs">
+            บันทึก
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: CLOUD SYNC & AUTH SETUP MODAL -->
+  <div id="cloudSyncModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+          <span>☁️</span> ระบบคลาวด์และซิงก์ข้อมูลข้ามอุปกรณ์ (Cloud Sync &amp; Auth)
+        </h3>
+        <button onclick="closeCloudSyncModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-600">
+        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-start gap-2">
+          <span class="text-emerald-600 text-base">🛡️</span>
+          <div>
+            <div class="font-bold text-emerald-900">สถานะปัจจุบัน: จัดเก็บภายในเครื่อง (Local Offline Storage)</div>
+            <p class="text-[11px] text-emerald-700 mt-0.5">
+              ข้อมูลบัญชีและประวัติทั้งหมดถูกเก็บรักษาไว้ในเบราว์เซอร์ของอุปกรณ์นี้อย่างปลอดภัย ไม่มีการส่งข้อมูลหรือกุญแจลับออกภายนอก
+            </p>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <h4 class="font-bold text-slate-800">สถาปัตยกรรมสำหรับซิงก์ข้ามคอมพิวเตอร์และมือถือ:</h4>
+          <p class="text-slate-500 leading-relaxed">
+            หากต้องการให้ข้อมูลซิงก์แบบ Real-time ข้ามเครื่อง แนะนำเชื่อมต่อกับ <b>Supabase (PostgreSQL BaaS)</b> ซึ่งรองรับระบบ Authentication และ Row Level Security (RLS) ทำให้ผู้ใช้แต่ละคนเห็นและแก้ไขได้เฉพาะข้อมูลของตนเอง โดยใช้เพียง <b>Public Anon Key</b> ฝั่งหน้าเว็บ โดยไม่มีการเปิดเผย Secret Key
+          </p>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+          <div class="font-semibold text-slate-700">การตั้งค่าเชื่อมต่อ Supabase Backend (เมื่อต้องการใช้งานจริง):</div>
+          <div>
+            <label class="block text-[11px] font-medium text-slate-500 mb-0.5">Supabase Project URL</label>
+            <input type="text" id="supabaseUrlInput" placeholder="https://your-project.supabase.co" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800">
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-slate-500 mb-0.5">Supabase Public Anon Key (ไม่ใช่ Service Role Key)</label>
+            <input type="password" id="supabaseKeyInput" placeholder="eyJhbGciOi..." class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800">
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-400 italic">
+          *หากยังไม่ได้เชื่อมต่อระบบภายนอก สามารถใช้งานระบบจัดเก็บในเครื่อง (Local Storage) ได้อย่างสมบูรณ์แบบ และใช้ปุ่ม "สำรอง JSON" เพื่อย้ายข้อมูลข้ามเครื่องได้ทันที
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeCloudSyncModal()" class="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-xs">
+          เข้าใจแล้ว / ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC IN JAVASCRIPT -->
+  <script>
+    const STORAGE_KEY_V3 = 'antigravity_wealth_tracker_v3';
+    const STORAGE_KEY_V2 = 'antigravity_wealth_tracker_v2';
+
+    // Default Starting State
+    const defaultState = {
+      theme: 'light',
+      initialBalances: {
+        asOfDate: '2026-09-01',
+        make_kbank: 25000,
+        dime_save: 25000,
+        invested_thai: 20000,
+        invested_foreign: 25000
+      },
+      transactions: [
+        {
+          id: 'tx_init_1',
+          date: '2026-09-15',
+          type: 'deposit',
+          targetAccount: 'make_kbank',
+          amount: 5000,
+          note: 'เงินออมพิเศษ ก.ย.'
+        },
+        {
+          id: 'tx_1',
+          date: '2026-10-05',
+          type: 'invest_foreign',
+          fromAccount: 'dime_save',
+          amount: 5000,
+          note: 'ซื้อ VOOG หุ้นสหรัฐฯ สะสม'
+        },
+        {
+          id: 'tx_2',
+          date: '2026-10-10',
+          type: 'deposit',
+          targetAccount: 'make_kbank',
+          amount: 10000,
+          note: 'ฝากเงินออมประจำเดือน ต.ค.'
+        },
+        {
+          id: 'tx_3',
+          date: '2026-10-12',
+          type: 'invest_thai',
+          fromAccount: 'dime_save',
+          amount: 3000,
+          note: 'ลงทุนหุ้นไทยปันผล'
+        }
+      ],
+      monthlyReturns: [
+        { id: 'ret_1', month: '2026-05', percent: 2.45, note: 'เริ่มจัดพอร์ต' },
+        { id: 'ret_2', month: '2026-06', percent: -1.20, note: 'ตลาดพักฐาน' },
+        { id: 'ret_3', month: '2026-07', percent: 3.80, note: 'หุ้นเทคฯ ขึ้น' },
+        { id: 'ret_4', month: '2026-08', percent: 1.50, note: 'Dime! แจ้งเตือนบวก' },
+        { id: 'ret_5', month: '2026-09', percent: 4.20, note: 'พอร์ตเติบโตดี' },
+        { id: 'ret_6', month: '2026-10', percent: 3.10, note: 'DCA เพิ่ม' }
+      ],
+      todos: [
+        { id: 'todo_1', text: 'ตรวจเช็คสภาพคล่องเงินสำรองใน MAKE by KBank', completed: true },
+        { id: 'todo_2', text: 'เช็คยอดดอกเบี้ยสะสมใน Dime! Save', completed: true },
+        { id: 'todo_3', text: 'ตัดเงินจาก Dime! Save ไปลงทุนหุ้นไทย / หุ้นต่างประเทศ', completed: false },
+        { id: 'todo_4', text: 'สิ้นเดือน: ดู LINE สรุปผลตอบแทนจาก Dime! แล้วกรอกตาราง', completed: false }
+      ]
+    };
+
+    let appData = loadState();
+    let currentTxType = 'deposit';
+    let isSettingsOpen = false; // Closed by default
+    let isReturnsTableOpen = false;
+    let pendingTx = null; // Staged transaction awaiting confirmation
+
+    // 1. DATA MIGRATION & STORAGE MANAGEMENT
+    function loadState() {
+      try {
+        // First check V3
+        const savedV3 = localStorage.getItem(STORAGE_KEY_V3);
+        if (savedV3) {
+          const parsed = JSON.parse(savedV3);
+          return sanitizeAppData(parsed);
+        }
+
+        // Safe Migration from V2 if exists
+        const savedV2 = localStorage.getItem(STORAGE_KEY_V2);
+        if (savedV2) {
+          const v2Data = JSON.parse(savedV2);
+          const migrated = migrateV2ToV3(v2Data);
+          localStorage.setItem(STORAGE_KEY_V3, JSON.stringify(migrated));
+          return migrated;
+        }
+      } catch (e) {
+        console.error('Error loading data:', e);
+      }
+      return JSON.parse(JSON.stringify(defaultState));
+    }
+
+    function migrateV2ToV3(v2) {
+      console.log('Migrating V2 data to V3 cleanly...');
+      const v3 = JSON.parse(JSON.stringify(defaultState));
+
+      if (v2.theme) v3.theme = v2.theme;
+      if (Array.isArray(v2.monthlyReturns)) v3.monthlyReturns = v2.monthlyReturns;
+      if (Array.isArray(v2.todos)) v3.todos = v2.todos;
+
+      // Migrate transactions
+      if (Array.isArray(v2.transactions)) {
+        v3.transactions = v2.transactions.map((tx, idx) => {
+          const date = tx.date || new Date().toISOString().split('T')[0];
+          const amt = Math.abs(Number(tx.amount) || 0);
+          const note = tx.note || '';
+
+          if (tx.type === 'invest') {
+            return {
+              id: tx.id || 'tx_migrated_' + idx,
+              date: date,
+              type: 'invest_foreign',
+              fromAccount: 'dime_save',
+              amount: amt,
+              note: note || 'ลงทุนหุ้นต่างประเทศ'
+            };
+          } else {
+            const isDime = String(tx.accountCategory || '').includes('Dime! Save');
+            return {
+              id: tx.id || 'tx_migrated_' + idx,
+              date: date,
+              type: 'deposit',
+              targetAccount: isDime ? 'dime_save' : 'make_kbank',
+              amount: amt,
+              note: note || 'เงินฝากเข้า'
+            };
+          }
+        });
+      }
+
+      // Compute initial balances so that initial + txs = old accounts
+      const currentMake = Number(v2.accounts?.make_kbank) || 35000;
+      const currentDime = Number(v2.accounts?.dime_save) || 20000;
+      const currentInvested = Number(v2.totalInvestedCapital) || 50000;
+
+      // Archive legacy FCD if user had any
+      if (v2.accounts?.dime_fcd) {
+        v3.migrated_legacy_dime_fcd = v2.accounts.dime_fcd;
+      }
+
+      // Net impact of migrated transactions
+      let netMake = 0;
+      let netDime = 0;
+      let netForeign = 0;
+      v3.transactions.forEach(t => {
+        if (t.type === 'deposit') {
+          if (t.targetAccount === 'dime_save') netDime += t.amount;
+          else netMake += t.amount;
+        } else if (t.type === 'invest_foreign') {
+          netDime -= t.amount;
+          netForeign += t.amount;
+        }
+      });
+
+      v3.initialBalances = {
+        asOfDate: '2026-09-01',
+        make_kbank: Math.max(0, currentMake - netMake),
+        dime_save: Math.max(0, currentDime - netDime),
+        invested_thai: 0,
+        invested_foreign: Math.max(0, currentInvested - netForeign)
+      };
+
+      return v3;
+    }
+
+    function sanitizeAppData(data) {
+      if (!data.initialBalances) {
+        data.initialBalances = JSON.parse(JSON.stringify(defaultState.initialBalances));
+      }
+      if (!Array.isArray(data.transactions)) {
+        data.transactions = [];
+      }
+      if (!Array.isArray(data.monthlyReturns)) {
+        data.monthlyReturns = [];
+      }
+      if (!Array.isArray(data.todos)) {
+        data.todos = [];
+      }
+      return data;
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY_V3, JSON.stringify(appData));
+      } catch (e) {
+        console.error('Error saving state:', e);
+      }
+      renderApp();
+    }
+
+    // 2. LEDGER ENGINE & TIMELINE VALIDATOR
+    function computeLedger(initialBalances, transactions, upToDate = null) {
+      let make = Number(initialBalances.make_kbank) || 0;
+      let dime = Number(initialBalances.dime_save) || 0;
+      let thai = Number(initialBalances.invested_thai) || 0;
+      let foreign = Number(initialBalances.invested_foreign) || 0;
+
+      const filtered = upToDate 
+        ? transactions.filter(t => t.date <= upToDate)
+        : transactions;
+
+      const sorted = [...filtered].sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return (a.id || '').localeCompare(b.id || '');
+      });
+
+      for (const tx of sorted) {
+        const amt = Number(tx.amount) || 0;
+        switch (tx.type) {
+          case 'deposit':
+            if (tx.targetAccount === 'dime_save') dime += amt;
+            else make += amt;
+            break;
+
+          case 'transfer':
+            if (tx.fromAccount === 'dime_save') {
+              dime -= amt;
+              make += amt;
+            } else {
+              make -= amt;
+              dime += amt;
+            }
+            break;
+
+          case 'invest_thai':
+            dime -= amt;
+            thai += amt;
+            break;
+
+          case 'invest_foreign':
+            dime -= amt;
+            foreign += amt;
+            break;
+
+          case 'withdraw_investment': {
+            const ded = Number(tx.principalDeducted) || 0;
+            const rec = Number(tx.amountReceived) || 0;
+            if (tx.sourceInvestment === 'thai') thai -= ded;
+            else foreign -= ded;
+
+            if (tx.toAccount === 'dime_save') dime += rec;
+            else make += rec;
+            break;
+          }
+
+          case 'expense':
+            if (tx.fromAccount === 'dime_save') dime -= amt;
+            else make -= amt;
+            break;
+        }
+      }
+
+      return {
+        make_kbank: make,
+        dime_save: dime,
+        total_cash: make + dime,
+        invested_thai: thai,
+        invested_foreign: foreign,
+        total_invested: thai + foreign,
+        net_worth: make + dime + thai + foreign
+      };
+    }
+
+    function validateLedgerTimeline(initialBalances, transactions) {
+      let make = Number(initialBalances.make_kbank) || 0;
+      let dime = Number(initialBalances.dime_save) || 0;
+      let thai = Number(initialBalances.invested_thai) || 0;
+      let foreign = Number(initialBalances.invested_foreign) || 0;
+
+      if (make < 0) return { valid: false, error: 'ยอดตั้งต้น MAKE by KBank ต้องไม่ติดลบ' };
+      if (dime < 0) return { valid: false, error: 'ยอดตั้งต้น Dime! Save ต้องไม่ติดลบ' };
+      if (thai < 0) return { valid: false, error: 'เงินต้นตั้งต้นหุ้นไทย ต้องไม่ติดลบ' };
+      if (foreign < 0) return { valid: false, error: 'เงินต้นตั้งต้นหุ้นต่างประเทศ ต้องไม่ติดลบ' };
+
+      const sorted = [...transactions].sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return (a.id || '').localeCompare(b.id || '');
+      });
+
+      for (let i = 0; i < sorted.length; i++) {
+        const tx = sorted[i];
+        const amt = Number(tx.amount) || 0;
+
+        switch (tx.type) {
+          case 'deposit':
+            if (amt <= 0) return { valid: false, error: 'รายการวันที่ ' + tx.date + ': จำนวนเงินฝากต้องมากกว่า 0' };
+            if (tx.targetAccount === 'dime_save') dime += amt;
+            else make += amt;
+            break;
+
+          case 'transfer':
+            if (amt <= 0) return { valid: false, error: 'รายการวันที่ ' + tx.date + ': จำนวนเงินโอนต้องมากกว่า 0' };
+            if (tx.fromAccount === tx.toAccount) return { valid: false, error: 'รายการวันที่ ' + tx.date + ': ไม่อนุญาตให้โอนเข้าบัญชีเดียวกัน' };
+            if (tx.fromAccount === 'dime_save') {
+              if (dime < amt) {
+                return { valid: false, error: 'วันที่ ' + tx.date + ': Dime! Save มีเงินคงเหลือเพียง ฿' + dime.toLocaleString() + ' ไม่พอโอน ฿' + amt.toLocaleString() };
+              }
+              dime -= amt;
+              make += amt;
+            } else {
+              if (make < amt) {
+                return { valid: false, error: 'วันที่ ' + tx.date + ': MAKE by KBank มีเงินคงเหลือเพียง ฿' + make.toLocaleString() + ' ไม่พอโอน ฿' + amt.toLocaleString() };
+              }
+              make -= amt;
+              dime += amt;
+            }
+            break;
+
+          case 'invest_thai':
+            if (amt <= 0) return { valid: false, error: 'รายการวันที่ ' + tx.date + ': จำนวนเงินลงทุนต้องมากกว่า 0' };
+            if (dime < amt) {
+              return { valid: false, error: 'วันที่ ' + tx.date + ': Dime! Save มีเงินคงเหลือเพียง ฿' + dime.toLocaleString() + ' ไม่พอนำไปลงทุนหุ้นไทย ฿' + amt.toLocaleString() };
+            }
+            dime -= amt;
+            thai += amt;
+            break;
+
+          case 'invest_foreign':
+            if (amt <= 0) return { valid: false, error: 'รายการวันที่ ' + tx.date + ': จำนวนเงินลงทุนต้องมากกว่า 0' };
+            if (dime < amt) {
+              return { valid: false, error: 'วันที่ ' + tx.date + ': Dime! Save มีเงินคงเหลือเพียง ฿' + dime.toLocaleString() + ' ไม่พอนำไปลงทุนหุ้นต่างประเทศ ฿' + amt.toLocaleString() };
+            }
+            dime -= amt;
+            foreign += amt;
+            break;
+
+          case 'withdraw_investment': {
+            const rec = Number(tx.amountReceived) || 0;
+            const ded = Number(tx.principalDeducted) || 0;
+            if (rec <= 0) return { valid: false, error: 'รายการวันที่ ' + tx.date + ': จำนวนเงินสดที่ได้รับต้องมากกว่า 0' };
+            if (ded <= 0) return { valid: false, error: 'รายการวันที่ ' + tx.date + ': ต้องระบุจำนวนเงินต้นที่ตัดออกมากกว่า 0' };
+            if (tx.sourceInvestment === 'thai') {
+              if (thai < ded) {
+                return { valid: false, error: 'วันที่ ' + tx.date + ': เงินต้นหุ้นไทยคงเหลือเพียง ฿' + thai.toLocaleString() + ' ไม่สามารถตัดเงินต้น ฿' + ded.toLocaleString() };
+              }
+              thai -= ded;
+            } else {
+              if (foreign < ded) {
+                return { valid: false, error: 'วันที่ ' + tx.date + ': เงินต้นหุ้นต่างประเทศคงเหลือเพียง ฿' + foreign.toLocaleString() + ' ไม่สามารถตัดเงินต้น ฿' + ded.toLocaleString() };
+              }
+              foreign -= ded;
+            }
+            if (tx.toAccount === 'dime_save') dime += rec;
+            else make += rec;
+            break;
+          }
+
+          case 'expense':
+            if (amt <= 0) return { valid: false, error: 'รายการวันที่ ' + tx.date + ': จำนวนเงินค่าใช้จ่ายต้องมากกว่า 0' };
+            if (tx.fromAccount === 'dime_save') {
+              if (dime < amt) {
+                return { valid: false, error: 'วันที่ ' + tx.date + ': Dime! Save มีเงินคงเหลือเพียง ฿' + dime.toLocaleString() + ' ไม่พอสำหรับค่าใช้จ่าย ฿' + amt.toLocaleString() };
+              }
+              dime -= amt;
+            } else {
+              if (make < amt) {
+                return { valid: false, error: 'วันที่ ' + tx.date + ': MAKE by KBank มีเงินคงเหลือเพียง ฿' + make.toLocaleString() + ' ไม่พอสำหรับค่าใช้จ่าย ฿' + amt.toLocaleString() };
+              }
+              make -= amt;
+            }
+            break;
+
+          default:
+            return { valid: false, error: 'รายการวันที่ ' + tx.date + ': ไม่รู้จักประเภทธุรกรรม \'' + tx.type + '\'' };
+        }
+      }
+
+      return {
+        valid: true,
+        balances: {
+          make_kbank: make,
+          dime_save: dime,
+          invested_thai: thai,
+          invested_foreign: foreign,
+          total_cash: make + dime,
+          total_invested: thai + foreign,
+          net_worth: make + dime + thai + foreign
+        }
+      };
+    }
+
+    // 3. SETTINGS & STARTING BALANCES
+    function toggleSettings() {
+      isSettingsOpen = !isSettingsOpen;
+      const box = document.getElementById('settingsBox');
+      const label = document.getElementById('toggleSettingsLabel');
+      const icon = document.getElementById('toggleSettingsIcon');
+      if (isSettingsOpen) {
+        box.classList.remove('hidden');
+        label.innerText = 'ปิดการตั้งค่า';
+        icon.innerText = '✕';
+        renderSettingsInputs();
+      } else {
+        box.classList.add('hidden');
+        label.innerText = 'เปิดการตั้งค่า';
+        icon.innerText = '≡';
+      }
+    }
+
+    function cancelSettings() {
+      toggleSettings();
+    }
+
+    function renderSettingsInputs() {
+      const init = appData.initialBalances || {};
+      document.getElementById('settingAsOfDate').value = init.asOfDate || '2026-09-01';
+      document.getElementById('settingMakeKBank').value = init.make_kbank ?? 0;
+      document.getElementById('settingDimeSave').value = init.dime_save ?? 0;
+      document.getElementById('settingInvestedThai').value = init.invested_thai ?? 0;
+      document.getElementById('settingInvestedForeign').value = init.invested_foreign ?? 0;
+
+      const current = computeLedger(appData.initialBalances, appData.transactions);
+      document.getElementById('settingMakeCurrentHint').innerText = 'คงเหลือสุทธิปัจจุบัน: ' + fmtTHB(current.make_kbank);
+      document.getElementById('settingDimeCurrentHint').innerText = 'คงเหลือสุทธิปัจจุบัน: ' + fmtTHB(current.dime_save);
+      document.getElementById('settingThaiCurrentHint').innerText = 'เงินต้นคงเหลือปัจจุบัน: ' + fmtTHB(current.invested_thai);
+      document.getElementById('settingForeignCurrentHint').innerText = 'เงินต้นคงเหลือปัจจุบัน: ' + fmtTHB(current.invested_foreign);
+    }
+
+    function saveSettings() {
+      const asOf = document.getElementById('settingAsOfDate').value;
+      const make = parseFloat(document.getElementById('settingMakeKBank').value) || 0;
+      const dime = parseFloat(document.getElementById('settingDimeSave').value) || 0;
+      const thai = parseFloat(document.getElementById('settingInvestedThai').value) || 0;
+      const foreign = parseFloat(document.getElementById('settingInvestedForeign').value) || 0;
+
+      if (!asOf) {
+        alert('กรุณาระบุวันเริ่มต้นยอดยกมา');
+        return;
+      }
+
+      const testInitial = {
+        asOfDate: asOf,
+        make_kbank: make,
+        dime_save: dime,
+        invested_thai: thai,
+        invested_foreign: foreign
+      };
+
+      // Validate timeline with new initial balances
+      const check = validateLedgerTimeline(testInitial, appData.transactions);
+      if (!check.valid) {
+        alert('⚠️ ไม่สามารถบันทึกการตั้งค่ายอดตั้งต้นได้:\n\n' + check.error);
+        return;
+      }
+
+      appData.initialBalances = testInitial;
+      saveState();
+      alert('บันทึกการตั้งค่ายอดตั้งต้นเรียบร้อยแล้ว');
+      toggleSettings();
+    }
+
+    // 4. TRANSACTION FORM LOGIC & MODES
+    function setTxType(type) {
+      currentTxType = type;
+      const types = ['deposit', 'transfer', 'invest_thai', 'invest_foreign', 'withdraw_investment', 'expense'];
+      
+      // Update Tab Styles
+      types.forEach(t => {
+        const btn = document.getElementById('tab_' + t);
+        const group = document.getElementById('fg_' + t);
+        if (t === type) {
+          btn.className = 'py-1.5 px-2 rounded-lg transition bg-white text-blue-700 shadow-2xs font-semibold flex items-center justify-center gap-1';
+          if (group) group.classList.remove('hidden');
+        } else {
+          btn.className = 'py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1';
+          if (group) group.classList.add('hidden');
+        }
+      });
+
+      const current = computeLedger(appData.initialBalances, appData.transactions);
+      const amtLabel = document.getElementById('txAmountLabel');
+      const amtSubHint = document.getElementById('txAmountSubHint');
+      const submitBtn = document.getElementById('btnSubmitTx');
+
+      // Adjust labels and hints based on type
+      if (type === 'deposit') {
+        amtLabel.innerText = 'จำนวนเงินที่ต้องการเติมเข้า (บาท)';
+        amtSubHint.innerText = '';
+        submitBtn.className = 'w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition shadow-2xs flex items-center justify-center gap-1.5 mt-2';
+        submitBtn.innerHTML = '<span>📥 ตรวจสอบและบันทึกการเติมเงิน</span>';
+      } else if (type === 'transfer') {
+        amtLabel.innerText = 'จำนวนเงินที่ต้องการโอน (บาท)';
+        handleTransferFromChange();
+        submitBtn.className = 'w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-medium transition shadow-2xs flex items-center justify-center gap-1.5 mt-2';
+        submitBtn.innerHTML = '<span>🔄 ตรวจสอบและบันทึกการโอน</span>';
+      } else if (type === 'invest_thai') {
+        amtLabel.innerText = 'จำนวนเงินที่นำไปลงทุนหุ้นไทย (บาท)';
+        document.getElementById('investThaiDimeHint').innerText = 'Dime! Save คงเหลือ: ' + fmtTHB(current.dime_save);
+        amtSubHint.innerText = 'สูงสุด: ' + fmtTHB(current.dime_save);
+        submitBtn.className = 'w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-medium transition shadow-2xs flex items-center justify-center gap-1.5 mt-2';
+        submitBtn.innerHTML = '<span>🇹🇭 ตรวจสอบและบันทึกการลงทุนหุ้นไทย</span>';
+      } else if (type === 'invest_foreign') {
+        amtLabel.innerText = 'จำนวนเงินที่นำไปลงทุนหุ้นต่างประเทศ (บาท)';
+        document.getElementById('investForeignDimeHint').innerText = 'Dime! Save คงเหลือ: ' + fmtTHB(current.dime_save);
+        amtSubHint.innerText = 'สูงสุด: ' + fmtTHB(current.dime_save);
+        submitBtn.className = 'w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium transition shadow-2xs flex items-center justify-center gap-1.5 mt-2';
+        submitBtn.innerHTML = '<span>🌍 ตรวจสอบและบันทึกการลงทุนหุ้นนอก</span>';
+      } else if (type === 'withdraw_investment') {
+        amtLabel.innerText = 'จำนวนเงินสดที่ได้รับจริงเข้าบัญชี (บาท)';
+        handleWithdrawSourceChange();
+        submitBtn.className = 'w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition shadow-2xs flex items-center justify-center gap-1.5 mt-2';
+        submitBtn.innerHTML = '<span>↩️ ตรวจสอบและบันทึกการถอนเงินลงทุน</span>';
+      } else if (type === 'expense') {
+        amtLabel.innerText = 'จำนวนเงินค่าใช้จ่าย (บาท)';
+        handleExpenseFromChange();
+        submitBtn.className = 'w-full py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-medium transition shadow-2xs flex items-center justify-center gap-1.5 mt-2';
+        submitBtn.innerHTML = '<span>💸 ตรวจสอบและบันทึกค่าใช้จ่าย</span>';
+      }
+    }
+
+    function handleTransferFromChange() {
+      const from = document.getElementById('transferFromAccount').value;
+      const toSelect = document.getElementById('transferToAccount');
+      toSelect.value = from === 'make_kbank' ? 'dime_save' : 'make_kbank';
+      
+      const current = computeLedger(appData.initialBalances, appData.transactions);
+      const avail = from === 'make_kbank' ? current.make_kbank : current.dime_save;
+      document.getElementById('transferFromHint').innerText = 'คงเหลือ: ' + fmtTHB(avail);
+      document.getElementById('txAmountSubHint').innerText = 'สูงสุด: ' + fmtTHB(avail);
+    }
+
+    function handleTransferToChange() {
+      const to = document.getElementById('transferToAccount').value;
+      const fromSelect = document.getElementById('transferFromAccount');
+      fromSelect.value = to === 'make_kbank' ? 'dime_save' : 'make_kbank';
+      handleTransferFromChange();
+    }
+
+    function handleWithdrawSourceChange() {
+      const src = document.getElementById('withdrawSourceInvestment').value;
+      const current = computeLedger(appData.initialBalances, appData.transactions);
+      const availPrincipal = src === 'thai' ? current.invested_thai : current.invested_foreign;
+      document.getElementById('withdrawSourceHint').innerText = 'เงินต้นคงเหลือ: ' + fmtTHB(availPrincipal);
+      document.getElementById('txAmountSubHint').innerText = 'เงินต้นที่มี: ' + fmtTHB(availPrincipal);
+    }
+
+    function handleExpenseFromChange() {
+      const from = document.getElementById('expenseFromAccount').value;
+      const current = computeLedger(appData.initialBalances, appData.transactions);
+      const avail = from === 'make_kbank' ? current.make_kbank : current.dime_save;
+      document.getElementById('expenseFromHint').innerText = 'คงเหลือ: ' + fmtTHB(avail);
+      document.getElementById('txAmountSubHint').innerText = 'สูงสุด: ' + fmtTHB(avail);
+    }
+
+    // 5. TRANSACTION FORM SUBMIT & CONFIRMATION MODAL
+    function handleTransactionFormSubmit(e) {
+      e.preventDefault();
+      const date = document.getElementById('txInputDate').value;
+      const amount = parseFloat(document.getElementById('txInputAmount').value);
+      const note = document.getElementById('txInputNote').value.trim();
+
+      if (!date) {
+        alert('กรุณาระบุวันที่ทำรายการ');
+        return;
+      }
+      if (isNaN(amount) || amount <= 0) {
+        alert('กรุณาระบุจำนวนเงินให้มากกว่า 0');
+        return;
+      }
+
+      let tx = {
+        id: 'tx_' + Date.now(),
+        date: date,
+        type: currentTxType,
+        amount: amount,
+        note: note
+      };
+
+      if (currentTxType === 'deposit') {
+        tx.targetAccount = document.getElementById('depositTargetAccount').value;
+      } else if (currentTxType === 'transfer') {
+        tx.fromAccount = document.getElementById('transferFromAccount').value;
+        tx.toAccount = document.getElementById('transferToAccount').value;
+        if (tx.fromAccount === tx.toAccount) {
+          alert('ไม่อนุญาตให้โอนเข้าบัญชีเดียวกัน');
+          return;
+        }
+      } else if (currentTxType === 'invest_thai') {
+        tx.fromAccount = 'dime_save';
+      } else if (currentTxType === 'invest_foreign') {
+        tx.fromAccount = 'dime_save';
+      } else if (currentTxType === 'withdraw_investment') {
+        const principalDeducted = parseFloat(document.getElementById('withdrawPrincipalDeducted').value);
+        if (isNaN(principalDeducted) || principalDeducted <= 0) {
+          alert('กรุณาระบุจำนวนเงินต้นที่ต้องการตัดออกให้มากกว่า 0');
+          return;
+        }
+        tx.sourceInvestment = document.getElementById('withdrawSourceInvestment').value;
+        tx.toAccount = document.getElementById('withdrawToAccount').value;
+        tx.amountReceived = amount; // Cash received into account
+        tx.principalDeducted = principalDeducted;
+        delete tx.amount; // Use amountReceived and principalDeducted
+      } else if (currentTxType === 'expense') {
+        tx.fromAccount = document.getElementById('expenseFromAccount').value;
+        tx.category = document.getElementById('expenseCategory').value;
+      }
+
+      // Timeline Verification
+      const testTransactions = [...appData.transactions, tx];
+      const check = validateLedgerTimeline(appData.initialBalances, testTransactions);
+      if (!check.valid) {
+        alert('⚠️ ไม่สามารถบันทึกรายการได้:\n\n' + check.error);
+        return;
+      }
+
+      // Show Confirmation Modal
+      openConfirmModal(tx, false);
+    }
+
+    function openConfirmModal(tx, isEdit = false) {
+      pendingTx = { tx: tx, isEdit: isEdit };
+
+      // Compute balances before and after
+      const beforeBalances = computeLedger(appData.initialBalances, appData.transactions);
+      
+      let futureTxs;
+      if (isEdit) {
+        futureTxs = appData.transactions.map(t => t.id === tx.id ? tx : t);
+      } else {
+        futureTxs = [...appData.transactions, tx];
+      }
+      const afterBalances = computeLedger(appData.initialBalances, futureTxs);
+
+      const typeMeta = getTxTypeMeta(tx);
+      let detailsHtml = '';
+
+      if (tx.type === 'deposit') {
+        const accName = getAccountName(tx.targetAccount);
+        const before = tx.targetAccount === 'dime_save' ? beforeBalances.dime_save : beforeBalances.make_kbank;
+        const after = tx.targetAccount === 'dime_save' ? afterBalances.dime_save : afterBalances.make_kbank;
+        detailsHtml = `
+          <div class="p-3 bg-slate-50 rounded-xl space-y-1.5 border border-slate-100">
+            <div class="flex justify-between"><span class="text-slate-500">บัญชีปลายทาง:</span> <b class="text-slate-800">${accName}</b></div>
+            <div class="flex justify-between"><span class="text-slate-500">ยอดเงินก่อนทำรายการ:</span> <span class="text-slate-700">${fmtTHB(before)}</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">ยอดเงินหลังทำรายการ:</span> <b class="text-emerald-600">${fmtTHB(after)} (+${fmtTHB(tx.amount)})</b></div>
+            <div class="flex justify-between pt-1 border-t border-slate-200/60"><span class="text-slate-500">ผลต่อเงินสดรวม:</span> <b class="text-emerald-600">เพิ่มขึ้น ${fmtTHB(tx.amount)}</b></div>
+          </div>
+        `;
+      } else if (tx.type === 'transfer') {
+        const fromName = getAccountName(tx.fromAccount);
+        const toName = getAccountName(tx.toAccount);
+        const fromBefore = tx.fromAccount === 'dime_save' ? beforeBalances.dime_save : beforeBalances.make_kbank;
+        const fromAfter = tx.fromAccount === 'dime_save' ? afterBalances.dime_save : afterBalances.make_kbank;
+        const toBefore = tx.toAccount === 'dime_save' ? beforeBalances.dime_save : beforeBalances.make_kbank;
+        const toAfter = tx.toAccount === 'dime_save' ? afterBalances.dime_save : afterBalances.make_kbank;
+        detailsHtml = `
+          <div class="p-3 bg-slate-50 rounded-xl space-y-1.5 border border-slate-100">
+            <div class="flex justify-between"><span class="text-slate-500">ต้นทาง (${fromName}):</span> <span class="text-rose-600">${fmtTHB(fromBefore)} ➔ ${fmtTHB(fromAfter)} (-${fmtTHB(tx.amount)})</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">ปลายทาง (${toName}):</span> <span class="text-emerald-600">${fmtTHB(toBefore)} ➔ ${fmtTHB(toAfter)} (+${fmtTHB(tx.amount)})</span></div>
+            <div class="flex justify-between pt-1 border-t border-slate-200/60"><span class="text-slate-500">ผลต่อเงินสดรวม:</span> <b class="text-slate-700">คงที่ (ไม่เปลี่ยนแปลง)</b></div>
+          </div>
+        `;
+      } else if (tx.type === 'invest_thai' || tx.type === 'invest_foreign') {
+        const isThai = tx.type === 'invest_thai';
+        const portName = isThai ? '🇹🇭 พอร์ตหุ้นไทย' : '🌍 พอร์ตหุ้นต่างประเทศ';
+        const dimeBefore = beforeBalances.dime_save;
+        const dimeAfter = afterBalances.dime_save;
+        const portBefore = isThai ? beforeBalances.invested_thai : beforeBalances.invested_foreign;
+        const portAfter = isThai ? afterBalances.invested_thai : afterBalances.invested_foreign;
+        detailsHtml = `
+          <div class="p-3 bg-slate-50 rounded-xl space-y-1.5 border border-slate-100">
+            <div class="flex justify-between"><span class="text-slate-500">หักจาก Dime! Save:</span> <span class="text-rose-600">${fmtTHB(dimeBefore)} ➔ ${fmtTHB(dimeAfter)} (-${fmtTHB(tx.amount)})</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">เงินต้น ${portName}:</span> <span class="text-purple-600">${fmtTHB(portBefore)} ➔ ${fmtTHB(portAfter)} (+${fmtTHB(tx.amount)})</span></div>
+            <div class="flex justify-between pt-1 border-t border-slate-200/60"><span class="text-slate-500">ผลต่อสินทรัพย์รวม:</span> <b class="text-slate-700">คงที่ (แปลงเงินสดเป็นเงินต้นลงทุน)</b></div>
+          </div>
+        `;
+      } else if (tx.type === 'withdraw_investment') {
+        const isThai = tx.sourceInvestment === 'thai';
+        const portName = isThai ? '🇹🇭 พอร์ตหุ้นไทย' : '🌍 พอร์ตหุ้นต่างประเทศ';
+        const toName = getAccountName(tx.toAccount);
+        const portBefore = isThai ? beforeBalances.invested_thai : beforeBalances.invested_foreign;
+        const portAfter = isThai ? afterBalances.invested_thai : afterBalances.invested_foreign;
+        const cashBefore = tx.toAccount === 'dime_save' ? beforeBalances.dime_save : beforeBalances.make_kbank;
+        const cashAfter = tx.toAccount === 'dime_save' ? afterBalances.dime_save : afterBalances.make_kbank;
+        detailsHtml = `
+          <div class="p-3 bg-slate-50 rounded-xl space-y-1.5 border border-slate-100">
+            <div class="flex justify-between"><span class="text-slate-500">ถอนจากพอร์ต:</span> <b class="text-slate-800">${portName}</b></div>
+            <div class="flex justify-between"><span class="text-slate-500">เงินต้นที่ตัดออก:</span> <b class="text-purple-700">${fmtTHB(tx.principalDeducted)}</b> (คงเหลือ: ${fmtTHB(portAfter)})</div>
+            <div class="flex justify-between"><span class="text-slate-500">เงินสดรับเข้า (${toName}):</span> <b class="text-emerald-600">+${fmtTHB(tx.amountReceived)}</b> (คงเหลือ: ${fmtTHB(cashAfter)})</div>
+            <div class="text-[10px] text-slate-400 italic pt-1 border-t border-slate-200/60">*บันทึกยอดเงินเข้าบัญชีตามจริง ไม่มีการคิดหรือแสดงกำไร/ขาดทุน</div>
+          </div>
+        `;
+      } else if (tx.type === 'expense') {
+        const fromName = getAccountName(tx.fromAccount);
+        const fromBefore = tx.fromAccount === 'dime_save' ? beforeBalances.dime_save : beforeBalances.make_kbank;
+        const fromAfter = tx.fromAccount === 'dime_save' ? afterBalances.dime_save : afterBalances.make_kbank;
+        detailsHtml = `
+          <div class="p-3 bg-slate-50 rounded-xl space-y-1.5 border border-slate-100">
+            <div class="flex justify-between"><span class="text-slate-500">หักเงินจาก:</span> <b class="text-slate-800">${fromName}</b></div>
+            <div class="flex justify-between"><span class="text-slate-500">หมวดหมู่:</span> <span class="text-slate-700">${tx.category || 'ค่าใช้จ่ายทั่วไป'}</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">ยอดเงินคงเหลือ:</span> <span class="text-rose-600">${fmtTHB(fromBefore)} ➔ ${fmtTHB(fromAfter)} (-${fmtTHB(tx.amount)})</span></div>
+            <div class="flex justify-between pt-1 border-t border-slate-200/60"><span class="text-slate-500">ผลต่อเงินสดรวม:</span> <b class="text-rose-600">ลดลง ${fmtTHB(tx.amount)}</b></div>
+          </div>
+        `;
+      }
+
+      const modalBody = document.getElementById('confirmModalBody');
+      modalBody.innerHTML = `
+        <div class="flex items-center justify-between pb-2">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${typeMeta.badgeClass}">
+            ${typeMeta.icon} ${typeMeta.name}
+          </span>
+          <span class="text-slate-500 font-medium">วันที่: ${tx.date}</span>
+        </div>
+        ${detailsHtml}
+        ${tx.note ? `<div class="text-slate-500"><span class="font-medium text-slate-700">หมายเหตุ:</span> ${tx.note}</div>` : ''}
+      `;
+
+      const btn = document.getElementById('btnExecuteConfirm');
+      btn.disabled = false;
+      btn.innerHTML = '<span>ยืนยันการบันทึก</span>';
+
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      pendingTx = null;
+      document.getElementById('confirmModal').classList.add('hidden');
+    }
+
+    function executePendingTransaction() {
+      if (!pendingTx || !pendingTx.tx) return;
+
+      const btn = document.getElementById('btnExecuteConfirm');
+      btn.disabled = true;
+      btn.innerHTML = '<span>กำลังบันทึก...</span>';
+
+      const tx = pendingTx.tx;
+      const isEdit = pendingTx.isEdit;
+
+      if (isEdit) {
+        const idx = appData.transactions.findIndex(t => t.id === tx.id);
+        if (idx >= 0) {
+          appData.transactions[idx] = tx;
+        }
+      } else {
+        appData.transactions.unshift(tx);
+        // Reset Form
+        document.getElementById('txInputAmount').value = '';
+        document.getElementById('txInputNote').value = '';
+        if (document.getElementById('withdrawPrincipalDeducted')) {
+          document.getElementById('withdrawPrincipalDeducted').value = '';
+        }
+      }
+
+      saveState();
+      closeConfirmModal();
+      if (isEdit) closeEditTxModal();
+    }
+
+    // 6. EDIT & DELETE TRANSACTION
+    function openEditTxModal(txId) {
+      const tx = appData.transactions.find(t => t.id === txId);
+      if (!tx) return;
+
+      document.getElementById('editTxId').value = tx.id;
+      document.getElementById('editTxDate').value = tx.date;
+      document.getElementById('editTxNote').value = tx.note || '';
+
+      const typeMeta = getTxTypeMeta(tx);
+      document.getElementById('editTxTypeLabel').value = `${typeMeta.icon} ${typeMeta.name}`;
+
+      const amtGroup = document.getElementById('editTxAmountLabel');
+      const princGroup = document.getElementById('editTxWithdrawPrincipalGroup');
+      const accGroup = document.getElementById('editTxAccountGroup');
+
+      if (tx.type === 'withdraw_investment') {
+        amtGroup.innerText = 'จำนวนเงินสดที่ได้รับจริงเข้าบัญชี (บาท)';
+        document.getElementById('editTxAmount').value = tx.amountReceived;
+        princGroup.classList.remove('hidden');
+        document.getElementById('editTxPrincipalDeducted').value = tx.principalDeducted;
+        accGroup.innerHTML = `
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-medium text-slate-600 mb-1">ถอนจากพอร์ต</label>
+              <select id="editTxWithdrawSource" class="w-full border border-slate-200 rounded-lg px-2 py-1.5 bg-slate-50">
+                <option value="thai" ${tx.sourceInvestment === 'thai' ? 'selected' : ''}>🇹🇭 หุ้นไทย</option>
+                <option value="foreign" ${tx.sourceInvestment === 'foreign' ? 'selected' : ''}>🌍 หุ้นต่างประเทศ</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-600 mb-1">บัญชีปลายทาง</label>
+              <select id="editTxWithdrawTo" class="w-full border border-slate-200 rounded-lg px-2 py-1.5 bg-slate-50">
+                <option value="dime_save" ${tx.toAccount === 'dime_save' ? 'selected' : ''}>Dime! Save</option>
+                <option value="make_kbank" ${tx.toAccount === 'make_kbank' ? 'selected' : ''}>MAKE by KBank</option>
+              </select>
+            </div>
+          </div>
+        `;
+      } else {
+        princGroup.classList.add('hidden');
+        document.getElementById('editTxAmount').value = tx.amount;
+        amtGroup.innerText = 'จำนวนเงิน (บาท)';
+
+        if (tx.type === 'deposit') {
+          accGroup.innerHTML = `
+            <div>
+              <label class="block font-medium text-slate-600 mb-1">บัญชีปลายทาง</label>
+              <select id="editTxDepositTarget" class="w-full border border-slate-200 rounded-lg px-2 py-1.5 bg-slate-50">
+                <option value="make_kbank" ${tx.targetAccount === 'make_kbank' ? 'selected' : ''}>MAKE by KBank</option>
+                <option value="dime_save" ${tx.targetAccount === 'dime_save' ? 'selected' : ''}>Dime! Save</option>
+              </select>
+            </div>
+          `;
+        } else if (tx.type === 'transfer') {
+          accGroup.innerHTML = `
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-medium text-slate-600 mb-1">บัญชีต้นทาง</label>
+                <select id="editTxTransferFrom" class="w-full border border-slate-200 rounded-lg px-2 py-1.5 bg-slate-50" onchange="document.getElementById('editTxTransferTo').value = this.value === 'make_kbank' ? 'dime_save' : 'make_kbank'">
+                  <option value="make_kbank" ${tx.fromAccount === 'make_kbank' ? 'selected' : ''}>MAKE by KBank</option>
+                  <option value="dime_save" ${tx.fromAccount === 'dime_save' ? 'selected' : ''}>Dime! Save</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-medium text-slate-600 mb-1">บัญชีปลายทาง</label>
+                <select id="editTxTransferTo" disabled class="w-full border border-slate-200 rounded-lg px-2 py-1.5 bg-slate-100">
+                  <option value="dime_save" ${tx.toAccount === 'dime_save' ? 'selected' : ''}>Dime! Save</option>
+                  <option value="make_kbank" ${tx.toAccount === 'make_kbank' ? 'selected' : ''}>MAKE by KBank</option>
+                </select>
+              </div>
+            </div>
+          `;
+        } else if (tx.type === 'expense') {
+          accGroup.innerHTML = `
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-medium text-slate-600 mb-1">หักจากบัญชี</label>
+                <select id="editTxExpenseFrom" class="w-full border border-slate-200 rounded-lg px-2 py-1.5 bg-slate-50">
+                  <option value="make_kbank" ${tx.fromAccount === 'make_kbank' ? 'selected' : ''}>MAKE by KBank</option>
+                  <option value="dime_save" ${tx.fromAccount === 'dime_save' ? 'selected' : ''}>Dime! Save</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-medium text-slate-600 mb-1">หมวดหมู่</label>
+                <input type="text" id="editTxExpenseCategory" value="${tx.category || ''}" class="w-full border border-slate-200 rounded-lg px-2 py-1.5 bg-slate-50">
+              </div>
+            </div>
+          `;
+        } else {
+          accGroup.innerHTML = '';
+        }
+      }
+
+      document.getElementById('editTxModal').classList.remove('hidden');
+    }
+
+    function closeEditTxModal() {
+      document.getElementById('editTxModal').classList.add('hidden');
+    }
+
+    function handleEditTxSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('editTxId').value;
+      const original = appData.transactions.find(t => t.id === id);
+      if (!original) return;
+
+      const date = document.getElementById('editTxDate').value;
+      const amount = parseFloat(document.getElementById('editTxAmount').value);
+      const note = document.getElementById('editTxNote').value.trim();
+
+      if (!date || isNaN(amount) || amount <= 0) {
+        alert('กรุณาระบุข้อมูลวันที่และจำนวนเงินให้ถูกต้อง');
+        return;
+      }
+
+      const updated = { ...original, date: date, note: note };
+
+      if (original.type === 'withdraw_investment') {
+        const principalDeducted = parseFloat(document.getElementById('editTxPrincipalDeducted').value);
+        if (isNaN(principalDeducted) || principalDeducted <= 0) {
+          alert('กรุณาระบุเงินต้นที่ตัดออกให้ถูกต้อง');
+          return;
+        }
+        updated.amountReceived = amount;
+        updated.principalDeducted = principalDeducted;
+        updated.sourceInvestment = document.getElementById('editTxWithdrawSource').value;
+        updated.toAccount = document.getElementById('editTxWithdrawTo').value;
+      } else {
+        updated.amount = amount;
+        if (original.type === 'deposit') {
+          updated.targetAccount = document.getElementById('editTxDepositTarget').value;
+        } else if (original.type === 'transfer') {
+          updated.fromAccount = document.getElementById('editTxTransferFrom').value;
+          updated.toAccount = document.getElementById('editTxTransferTo').value;
+        } else if (original.type === 'expense') {
+          updated.fromAccount = document.getElementById('editTxExpenseFrom').value;
+          updated.category = document.getElementById('editTxExpenseCategory').value;
+        }
+      }
+
+      // Check timeline validity
+      const testTransactions = appData.transactions.map(t => t.id === id ? updated : t);
+      const check = validateLedgerTimeline(appData.initialBalances, testTransactions);
+      if (!check.valid) {
+        alert('⚠️ ไม่สามารถบันทึกการแก้ไขได้:\n\n' + check.error);
+        return;
+      }
+
+      // Open confirm modal for edit
+      openConfirmModal(updated, true);
+    }
+
+    function deleteTransaction(txId) {
+      const tx = appData.transactions.find(t => t.id === txId);
+      if (!tx) return;
+
+      // Validate if deleting this transaction would cause any future balance to be negative
+      const testTransactions = appData.transactions.filter(t => t.id !== txId);
+      const check = validateLedgerTimeline(appData.initialBalances, testTransactions);
+      if (!check.valid) {
+        alert('⚠️ ไม่สามารถลบรายการนี้ได้ เนื่องจากจะทำให้ยอดเงินในรายการย้อนหลังติดลบ:\n\n' + check.error);
+        return;
+      }
+
+      const typeMeta = getTxTypeMeta(tx);
+      const amtStr = tx.type === 'withdraw_investment' ? fmtTHB(tx.amountReceived) : fmtTHB(tx.amount);
+
+      if (confirm(`คุณต้องการลบรายการนี้ใช่หรือไม่?\n\nวันที่: ${tx.date}\nประเภท: ${typeMeta.name}\nจำนวนเงิน: ${amtStr}\n\nระบบจะคำนวณและปรับยอดเงินคงเหลือให้อัตโนมัติ`)) {
+        appData.transactions = testTransactions;
+        saveState();
+      }
+    }
+
+    // 7. MONTHLY SAVINGS COMPARISON ENGINE (Replaces Dime! FCD)
+    function computeMonthlySavingsComparison() {
+      const now = new Date();
+      const currYear = now.getFullYear();
+      const currMonth = now.getMonth() + 1;
+
+      // Current month total cash
+      const current = computeLedger(appData.initialBalances, appData.transactions);
+      const currSavings = current.total_cash;
+
+      // Find the end of previous month (e.g. 2026-09-30)
+      const prevMonthLastDateObj = new Date(currYear, currMonth - 1, 0);
+      const prevMonthLastDateStr = prevMonthLastDateObj.toISOString().split('T')[0];
+      const prevMonthLabel = formatThaiMonthShort(prevMonthLastDateObj.getFullYear() + '-' + String(prevMonthLastDateObj.getMonth() + 1).padStart(2, '0'));
+      const currMonthLabel = formatThaiMonthShort(currYear + '-' + String(currMonth).padStart(2, '0'));
+
+      // Check if we have history as of previous month
+      const initialDate = appData.initialBalances?.asOfDate || '9999-12-31';
+      const hasPriorTx = appData.transactions.some(t => t.date <= prevMonthLastDateStr);
+      const hasPriorInitial = initialDate <= prevMonthLastDateStr;
+
+      if (!hasPriorTx && !hasPriorInitial) {
+        return {
+          hasPrevData: false,
+          currMonthLabel: currMonthLabel,
+          currSavings: currSavings,
+          prevMonthLabel: prevMonthLabel,
+          prevSavings: null,
+          diff: null,
+          pct: null
+        };
+      }
+
+      const prevLedger = computeLedger(appData.initialBalances, appData.transactions, prevMonthLastDateStr);
+      const prevSavings = prevLedger.total_cash;
+      const diff = currSavings - prevSavings;
+      const pct = prevSavings > 0 ? (diff / prevSavings) * 100 : null;
+
+      return {
+        hasPrevData: true,
+        currMonthLabel: currMonthLabel,
+        currSavings: currSavings,
+        prevMonthLabel: prevMonthLabel,
+        prevSavings: prevSavings,
+        diff: diff,
+        pct: pct
+      };
+    }
+
+    function renderMonthlySavingsCard() {
+      const comp = computeMonthlySavingsComparison();
+      document.getElementById('labelCurrMonthSavings').innerText = `เดือนปัจจุบัน (${comp.currMonthLabel}):`;
+      document.getElementById('valCurrMonthSavings').innerText = fmtTHB(comp.currSavings);
+
+      const prevLabelEl = document.getElementById('labelPrevMonthSavings');
+      const prevValEl = document.getElementById('valPrevMonthSavings');
+      const diffValEl = document.getElementById('valSavingsDiff');
+      const badge = document.getElementById('savingsComparisonBadge');
+
+      if (!comp.hasPrevData) {
+        prevLabelEl.innerText = `เดือนก่อนหน้า (${comp.prevMonthLabel}):`;
+        prevValEl.innerHTML = `<span class="text-slate-400 italic">ไม่มีข้อมูลเปรียบเทียบ</span>`;
+        diffValEl.innerHTML = `<span class="text-slate-400 font-normal">ไม่มีข้อมูลเดือนก่อนหน้า</span>`;
+        badge.className = 'text-[11px] font-medium bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full';
+        badge.innerText = 'รอบเดือนแรก';
+      } else {
+        prevLabelEl.innerText = `เดือนก่อนหน้า (${comp.prevMonthLabel}):`;
+        prevValEl.innerText = fmtTHB(comp.prevSavings);
+
+        const isPositive = comp.diff > 0;
+        const isNegative = comp.diff < 0;
+        const sign = isPositive ? '+' : '';
+        const pctStr = comp.pct !== null ? ` (${sign}${comp.pct.toFixed(2)}%)` : '';
+
+        if (isPositive) {
+          diffValEl.innerHTML = `<span class="text-emerald-600">▲ +${fmtTHB(comp.diff)}${pctStr}</span>`;
+          badge.className = 'text-[11px] font-medium bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full';
+          badge.innerText = `เพิ่มขึ้น ${sign}${comp.pct ? comp.pct.toFixed(1) + '%' : ''}`;
+        } else if (isNegative) {
+          diffValEl.innerHTML = `<span class="text-rose-600">▼ -${fmtTHB(Math.abs(comp.diff))}${pctStr}</span>`;
+          badge.className = 'text-[11px] font-medium bg-rose-50 text-rose-600 border border-rose-100 px-2 py-0.5 rounded-full';
+          badge.innerText = `ลดลง ${comp.pct ? comp.pct.toFixed(1) + '%' : ''}`;
+        } else {
+          diffValEl.innerHTML = `<span class="text-slate-600">0.00 บาท (0.00%)</span>`;
+          badge.className = 'text-[11px] font-medium bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full';
+          badge.innerText = 'เท่าเดิม';
+        }
+      }
+    }
+
+    // 8. MONTHLY RETURNS (Dime! LINE Notification)
+    function handleQuickReturnSubmit(e) {
+      e.preventDefault();
+      const month = document.getElementById('lineMonthInput').value;
+      const pct = parseFloat(document.getElementById('linePercentInput').value);
+      const note = document.getElementById('lineNoteInput').value.trim();
+
+      if (!month || isNaN(pct)) {
+        alert('กรุณากรอกเดือนและ % ผลตอบแทน');
+        return;
+      }
+
+      const existingIdx = appData.monthlyReturns.findIndex(r => r.month === month);
+      if (existingIdx >= 0) {
+        if (!confirm(`พบข้อมูลของเดือน ${formatThaiMonth(month)} อยู่แล้ว\nคุณต้องการแก้ไขอัปเดตเป็น ${pct}% หรือไม่?`)) {
+          return;
+        }
+        appData.monthlyReturns[existingIdx].percent = pct;
+        appData.monthlyReturns[existingIdx].note = note;
+      } else {
+        appData.monthlyReturns.push({
+          id: 'ret_' + Date.now(),
+          month: month,
+          percent: pct,
+          note: note
+        });
+      }
+
+      appData.monthlyReturns.sort((a, b) => a.month.localeCompare(b.month));
+      document.getElementById('linePercentInput').value = '';
+      document.getElementById('lineNoteInput').value = '';
+      saveState();
+    }
+
+    function toggleReturnsTable() {
+      isReturnsTableOpen = !isReturnsTableOpen;
+      const container = document.getElementById('returnsTableContainer');
+      const icon = document.getElementById('returnsTableToggleIcon');
+      if (isReturnsTableOpen) {
+        container.classList.remove('hidden');
+        icon.innerText = '▼';
+        renderReturnsTable();
+      } else {
+        container.classList.add('hidden');
+        icon.innerText = '▶';
+      }
+    }
+
+    function renderReturnsTable() {
+      const tbody = document.getElementById('returnsTableBody');
+      const rets = appData.monthlyReturns || [];
+      document.getElementById('returnsCountLabel').innerText = rets.length;
+
+      if (rets.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูลผลตอบแทนรายเดือน</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rets.map(r => {
+        const isPos = r.percent >= 0;
+        const colorClass = isPos ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
+        const sign = r.percent > 0 ? '+' : '';
+        return `
+          <tr class="hover:bg-slate-50/70 transition">
+            <td class="py-2.5 px-3 font-semibold text-slate-800 whitespace-nowrap">${formatThaiMonth(r.month)}</td>
+            <td class="py-2.5 px-3 whitespace-nowrap ${colorClass}">${sign}${r.percent.toFixed(2)}%</td>
+            <td class="py-2.5 px-3 text-slate-500">${r.note || '-'}</td>
+            <td class="py-2.5 px-2 text-center whitespace-nowrap space-x-1">
+              <button onclick="openEditReturnModal('${r.id}')" class="text-blue-500 hover:text-blue-700 p-1" title="แก้ไข">✏️</button>
+              <button onclick="deleteMonthlyReturn('${r.id}')" class="text-rose-400 hover:text-rose-600 p-1" title="ลบ">🗑️</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openEditReturnModal(retId) {
+      const ret = appData.monthlyReturns.find(r => r.id === retId);
+      if (!ret) return;
+      document.getElementById('editReturnId').value = ret.id;
+      document.getElementById('editReturnMonth').value = ret.month;
+      document.getElementById('editReturnPercent').value = ret.percent;
+      document.getElementById('editReturnNote').value = ret.note || '';
+      document.getElementById('editReturnModal').classList.remove('hidden');
+    }
+
+    function closeEditReturnModal() {
+      document.getElementById('editReturnModal').classList.add('hidden');
+    }
+
+    function handleEditReturnSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('editReturnId').value;
+      const month = document.getElementById('editReturnMonth').value;
+      const pct = parseFloat(document.getElementById('editReturnPercent').value);
+      const note = document.getElementById('editReturnNote').value.trim();
+
+      const item = appData.monthlyReturns.find(r => r.id === id);
+      if (!item || !month || isNaN(pct)) return;
+
+      item.month = month;
+      item.percent = pct;
+      item.note = note;
+
+      appData.monthlyReturns.sort((a, b) => a.month.localeCompare(b.month));
+      saveState();
+      closeEditReturnModal();
+      renderReturnsTable();
+    }
+
+    function deleteMonthlyReturn(retId) {
+      const ret = appData.monthlyReturns.find(r => r.id === retId);
+      if (!ret) return;
+      if (confirm(`คุณต้องการลบข้อมูลผลตอบแทนเดือน ${formatThaiMonth(ret.month)} (${ret.percent}%) ใช่หรือไม่?`)) {
+        appData.monthlyReturns = appData.monthlyReturns.filter(r => r.id !== retId);
+        saveState();
+        renderReturnsTable();
+      }
+    }
+
+    // 9. BACKUP, RESTORE & EXPORT (JSON & CSV)
+    function exportBackupJSON() {
+      const exportObj = {
+        version: 'v3',
+        appName: 'Antigravity Wealth & Portfolio Tracker',
+        exportedAt: new Date().toISOString(),
+        appData: appData
+      };
+      const jsonStr = JSON.stringify(exportObj, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `antigravity_wealth_backup_${dateStr}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function triggerImportJSON() {
+      document.getElementById('jsonFileInput').click();
+    }
+
+    function handleJSONFileImport(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          const dataToLoad = parsed.appData ? parsed.appData : parsed;
+
+          if (!dataToLoad.initialBalances || !Array.isArray(dataToLoad.transactions)) {
+            alert('⚠️ รูปแบบไฟล์ JSON ไม่ถูกต้อง: ขาดโครงสร้างข้อมูลบัญชีหรือธุรกรรม');
+            return;
+          }
+
+          // Test ledger timeline of imported data
+          const check = validateLedgerTimeline(dataToLoad.initialBalances, dataToLoad.transactions);
+          if (!check.valid) {
+            alert('⚠️ ไม่สามารถนำเข้าข้อมูลได้: ตรวจพบรายการผิดพลาดในประวัติธุรกรรม:\n\n' + check.error);
+            return;
+          }
+
+          const txCount = dataToLoad.transactions.length;
+          const retCount = (dataToLoad.monthlyReturns || []).length;
+          const todoCount = (dataToLoad.todos || []).length;
+
+          if (confirm(`⚠️ ยืนยันการนำเข้าข้อมูล?\n\nข้อมูลที่จะนำเข้าประกอบด้วย:\n- ธุรกรรม: ${txCount} รายการ\n- ผลตอบแทนรายเดือน: ${retCount} เดือน\n- To-Do List: ${todoCount} รายการ\n\nคำเตือน: ข้อมูลเดิมในอุปกรณ์นี้จะถูกเขียนทับด้วยข้อมูลจากไฟล์`)) {
+            appData = sanitizeAppData(dataToLoad);
+            saveState();
+            alert('นำเข้าข้อมูลสำเร็จเรียบร้อยแล้ว');
+          }
+        } catch (err) {
+          alert('⚠️ เกิดข้อผิดพลาดในการอ่านไฟล์ JSON: ' + err.message);
+        }
+        e.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    function exportTransactionsCSV() {
+      const txs = appData.transactions || [];
+      if (txs.length === 0) {
+        alert('ยังไม่มีรายการธุรกรรมที่จะส่งออก');
+        return;
+      }
+
+      // Add UTF-8 BOM so Microsoft Excel renders Thai characters cleanly without mojibake
+      let csv = '\uFEFF';
+      csv += 'วันที่,ประเภทธุรกรรม,บัญชีต้นทาง,บัญชีปลายทาง/หมวดหมู่,จำนวนเงินสด(บาท),เงินต้นที่ตัดออก(บาท),หมายเหตุ\n';
+
+      const sorted = [...txs].sort((a, b) => b.date.localeCompare(a.date));
+      sorted.forEach(t => {
+        const typeMeta = getTxTypeMeta(t);
+        let fromAcc = '-';
+        let toAcc = '-';
+        let cashAmt = '';
+        let dedAmt = '';
+
+        if (t.type === 'deposit') {
+          toAcc = getAccountName(t.targetAccount);
+          cashAmt = t.amount;
+        } else if (t.type === 'transfer') {
+          fromAcc = getAccountName(t.fromAccount);
+          toAcc = getAccountName(t.toAccount);
+          cashAmt = t.amount;
+        } else if (t.type === 'invest_thai') {
+          fromAcc = 'Dime! Save';
+          toAcc = 'พอร์ตหุ้นไทย';
+          cashAmt = t.amount;
+        } else if (t.type === 'invest_foreign') {
+          fromAcc = 'Dime! Save';
+          toAcc = 'พอร์ตหุ้นต่างประเทศ';
+          cashAmt = t.amount;
+        } else if (t.type === 'withdraw_investment') {
+          fromAcc = t.sourceInvestment === 'thai' ? 'พอร์ตหุ้นไทย' : 'พอร์ตหุ้นต่างประเทศ';
+          toAcc = getAccountName(t.toAccount);
+          cashAmt = t.amountReceived;
+          dedAmt = t.principalDeducted;
+        } else if (t.type === 'expense') {
+          fromAcc = getAccountName(t.fromAccount);
+          toAcc = t.category || 'ค่าใช้จ่ายทั่วไป';
+          cashAmt = t.amount;
+        }
+
+        const safeNote = (t.note || '').replace(/"/g, '""');
+        csv += `"${t.date}","${typeMeta.name}","${fromAcc}","${toAcc}","${cashAmt}","${dedAmt}","${safeNote}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `antigravity_transactions_${dateStr}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // 10. CLOUD SYNC & AUTH MODAL
+    function openCloudSyncModal() {
+      document.getElementById('cloudSyncModal').classList.remove('hidden');
+    }
+
+    function closeCloudSyncModal() {
+      document.getElementById('cloudSyncModal').classList.add('hidden');
+    }
+
+    // 11. TODOS
+    function handleAddTodo(e) {
+      e.preventDefault();
+      const input = document.getElementById('newTodoInput');
+      const text = input.value.trim();
+      if (!text) return;
+      appData.todos.push({
+        id: 'todo_' + Date.now(),
+        text: text,
+        completed: false
+      });
+      input.value = '';
+      saveState();
+    }
+
+    function toggleTodo(id) {
+      const item = appData.todos.find(t => t.id === id);
+      if (item) {
+        item.completed = !item.completed;
+        saveState();
+      }
+    }
+
+    function deleteTodo(id) {
+      appData.todos = appData.todos.filter(t => t.id !== id);
+      saveState();
+    }
+
+    function resetMonthlyTodos() {
+      if (confirm('รีเซ็ตเครื่องหมายถูกใน To-Do ทั้งหมดสำหรับรอบเดือนใหม่?')) {
+        appData.todos.forEach(t => t.completed = false);
+        saveState();
+      }
+    }
+
+    // 12. HELPERS & FORMATTERS
+    function fmtTHB(n) {
+      return '฿' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatThaiMonth(mStr) {
+      if (!mStr) return '';
+      const [y, m] = mStr.split('-');
+      const th = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+      const idx = parseInt(m, 10) - 1;
+      return `${th[idx] || m} ${y}`;
+    }
+
+    function formatThaiMonthShort(mStr) {
+      if (!mStr) return '';
+      const [y, m] = mStr.split('-');
+      const th = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      const idx = parseInt(m, 10) - 1;
+      return `${th[idx] || m} ${y}`;
+    }
+
+    function getAccountName(accKey) {
+      if (accKey === 'make_kbank') return 'MAKE by KBank';
+      if (accKey === 'dime_save') return 'Dime! Save';
+      return accKey || '-';
+    }
+
+    function getTxTypeMeta(tx) {
+      switch (tx.type) {
+        case 'deposit':
+          return { name: 'เติมเงินเข้า', icon: '📥', badgeClass: 'bg-emerald-50 text-emerald-700' };
+        case 'transfer':
+          return { name: 'โอนระหว่างบัญชี', icon: '🔄', badgeClass: 'bg-sky-50 text-sky-700' };
+        case 'invest_thai':
+          return { name: 'ลงทุนหุ้นไทย', icon: '🇹🇭', badgeClass: 'bg-amber-50 text-amber-700' };
+        case 'invest_foreign':
+          return { name: 'ลงทุนหุ้นต่างประเทศ', icon: '🌍', badgeClass: 'bg-purple-50 text-purple-700' };
+        case 'withdraw_investment':
+          return { name: 'ถอนเงินลงทุน', icon: '↩️', badgeClass: 'bg-indigo-50 text-indigo-700' };
+        case 'expense':
+          return { name: 'ถอนใช้จ่ายทั่วไป', icon: '💸', badgeClass: 'bg-rose-50 text-rose-700' };
+        default:
+          return { name: tx.type, icon: '•', badgeClass: 'bg-slate-100 text-slate-700' };
+      }
+    }
+
+    // 13. CHARTS RENDERING
+    function renderDonutChart(makeThb, dimeSaveThb, investedThai, investedForeign, totalNetWorth) {
+      const svg = document.getElementById('donutChartSvg');
+      if (totalNetWorth <= 0) {
+        svg.innerHTML = '<circle cx="50" cy="50" r="38" fill="none" stroke="#e2e8f0" stroke-width="14" />';
+        document.getElementById('donutCenterLabel').innerText = '0%';
+        return;
+      }
+
+      const radius = 38;
+      const circumference = 2 * Math.PI * radius; // ~238.76
+
+      const data = [
+        { name: 'MAKE by KBank', val: makeThb, color: '#0ea5e9' },
+        { name: 'Dime! Save', val: dimeSaveThb, color: '#10b981' },
+        { name: 'หุ้นไทย', val: investedThai, color: '#f59e0b' },
+        { name: 'หุ้นต่างประเทศ', val: investedForeign, color: '#8b5cf6' }
+      ];
+
+      let offset = 0;
+      let html = '';
+
+      data.forEach(item => {
+        if (item.val <= 0) return;
+        const fraction = item.val / totalNetWorth;
+        const dashLength = fraction * circumference;
+        const gap = circumference - dashLength;
+
+        html += `
+          <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${item.color}" stroke-width="14"
+            stroke-dasharray="${dashLength.toFixed(2)} ${gap.toFixed(2)}"
+            stroke-dashoffset="${(-offset).toFixed(2)}"
+            class="transition-all duration-500 hover:opacity-80"
+          >
+            <title>${item.name}: ${fmtTHB(item.val)} (${(fraction * 100).toFixed(1)}%)</title>
+          </circle>
+        `;
+        offset += dashLength;
+      });
+
+      svg.innerHTML = html;
+      document.getElementById('donutCenterLabel').innerText = '100%';
+    }
+
+    function renderLineChart() {
+      const svg = document.getElementById('lineChartSvg');
+      const emptyMsg = document.getElementById('lineChartEmptyMsg');
+      const tooltip = document.getElementById('lineChartTooltip');
+      const data = appData.monthlyReturns || [];
+
+      if (!data || data.length === 0) {
+        svg.innerHTML = '';
+        emptyMsg.classList.remove('hidden');
+        document.getElementById('chartStatsSummary').innerText = '';
+        return;
+      }
+      emptyMsg.classList.add('hidden');
+
+      const width = svg.clientWidth || 550;
+      const height = svg.clientHeight || 210;
+      const pad = { top: 25, right: 25, bottom: 35, left: 45 };
+
+      const chartW = width - pad.left - pad.right;
+      const chartH = height - pad.top - pad.bottom;
+
+      const values = data.map(d => d.percent);
+      let minVal = Math.min(...values, 0);
+      let maxVal = Math.max(...values, 0);
+      const span = Math.max(maxVal - minVal, 2);
+      minVal -= span * 0.15;
+      maxVal += span * 0.15;
+
+      const getY = (val) => pad.top + chartH - ((val - minVal) / (maxVal - minVal)) * chartH;
+      const getX = (idx) => {
+        if (data.length === 1) return pad.left + chartW / 2;
+        return pad.left + (idx / (data.length - 1)) * chartW;
+      };
+
+      const zeroY = getY(0);
+
+      let html = '';
+
+      // Grid lines
+      for (let i = 0; i <= 3; i++) {
+        const v = minVal + (i / 3) * (maxVal - minVal);
+        const y = getY(v);
+        html += `
+          <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" stroke="#e2e8f0" stroke-dasharray="3,3" stroke-width="1" />
+          <text x="${pad.left - 6}" y="${y + 4}" font-size="10" fill="#94a3b8" text-anchor="end">${v.toFixed(1)}%</text>
+        `;
+      }
+
+      // Zero baseline
+      if (zeroY >= pad.top && zeroY <= height - pad.bottom) {
+        html += `<line x1="${pad.left}" y1="${zeroY}" x2="${width - pad.right}" y2="${zeroY}" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4,2" />`;
+      }
+
+      // Path
+      let pathD = '';
+      const points = [];
+      data.forEach((d, i) => {
+        const x = getX(i);
+        const y = getY(d.percent);
+        points.push({ x, y, data: d });
+        if (i === 0) {
+          pathD += `M ${x} ${y}`;
+        } else {
+          const prev = points[i - 1];
+          const cx1 = prev.x + (x - prev.x) / 2;
+          const cx2 = prev.x + (x - prev.x) / 2;
+          pathD += ` C ${cx1} ${prev.y}, ${cx2} ${y}, ${x} ${y}`;
+        }
+      });
+
+      const areaD = `${pathD} L ${points[points.length - 1].x} ${zeroY} L ${points[0].x} ${zeroY} Z`;
+
+      html += `
+        <defs>
+          <linearGradient id="lineAreaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2"/>
+            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0"/>
+          </linearGradient>
+        </defs>
+        <path d="${areaD}" fill="url(#lineAreaGrad)" />
+        <path d="${pathD}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" />
+      `;
+
+      points.forEach(pt => {
+        const isPos = pt.data.percent >= 0;
+        const color = isPos ? '#10b981' : '#f43f5e';
+        const label = formatThaiMonthShort(pt.data.month);
+
+        html += `
+          <text x="${pt.x}" y="${height - pad.bottom + 16}" font-size="10" fill="#64748b" text-anchor="middle" font-weight="500">${label}</text>
+          <circle cx="${pt.x}" cy="${pt.y}" r="5" fill="${color}" stroke="#ffffff" stroke-width="2" class="cursor-pointer"
+            data-month="${formatThaiMonth(pt.data.month)}" data-val="${pt.data.percent}" data-note="${pt.data.note || ''}"
+            onmouseenter="showTooltip(event, this)" onmouseleave="hideTooltip()"
+          />
+          <text x="${pt.x}" y="${pt.y - 8}" font-size="10" font-weight="bold" fill="${color}" text-anchor="middle">
+            ${pt.data.percent > 0 ? '+' : ''}${pt.data.percent.toFixed(1)}%
+          </text>
+        `;
+      });
+
+      svg.innerHTML = html;
+
+      // Stats summary
+      const sum = data.reduce((acc, d) => acc + d.percent, 0);
+      const avg = sum / data.length;
+      document.getElementById('chartStatsSummary').innerText = `เฉลี่ย: ${avg > 0 ? '+' : ''}${avg.toFixed(2)}% | ล่าสุด: ${data[data.length - 1].percent > 0 ? '+' : ''}${data[data.length - 1].percent.toFixed(2)}%`;
+    }
+
+    function showTooltip(evt, el) {
+      const tooltip = document.getElementById('lineChartTooltip');
+      const m = el.getAttribute('data-month');
+      const val = parseFloat(el.getAttribute('data-val'));
+      const note = el.getAttribute('data-note');
+
+      tooltip.innerHTML = `
+        <div class="font-bold text-slate-100">${m}</div>
+        <div class="${val >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-semibold">${val >= 0 ? '+' : ''}${val.toFixed(2)}%</div>
+        ${note ? `<div class="text-[10px] text-slate-400 italic mt-0.5">${note}</div>` : ''}
+      `;
+      tooltip.classList.remove('hidden');
+
+      const rect = el.getBoundingClientRect();
+      const parentRect = el.closest('svg').getBoundingClientRect();
+      tooltip.style.left = `${rect.left - parentRect.left + 10}px`;
+      tooltip.style.top = `${rect.top - parentRect.top - 40}px`;
+    }
+
+    function hideTooltip() {
+      document.getElementById('lineChartTooltip').classList.add('hidden');
+    }
+
+    // 14. THEME & APP RENDER
+    function toggleTheme() {
+      appData.theme = appData.theme === 'dark' ? 'light' : 'dark';
+      try { localStorage.setItem(STORAGE_KEY_V3, JSON.stringify(appData)); } catch (e) { console.error(e); }
+      applyTheme();
+    }
+
+    function applyTheme() {
+      const dark = appData.theme === 'dark';
+      document.body.classList.toggle('dark-mode', dark);
+      const icon = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (icon) icon.textContent = dark ? '☀️' : '🌙';
+      if (label) label.textContent = dark ? 'โหมดกลางวัน' : 'โหมดกลางคืน';
+      const btn = document.getElementById('btnToggleTheme');
+      if (btn) btn.setAttribute('aria-pressed', String(dark));
+    }
+
+    function renderTransactionTable() {
+      const filter = document.getElementById('filterTxType').value;
+      const txBody = document.getElementById('transactionTableBody');
+      let txs = appData.transactions || [];
+
+      if (filter !== 'all') {
+        txs = txs.filter(t => t.type === filter);
+      }
+
+      document.getElementById('historyCountBadge').innerText = `ทั้งหมด ${txs.length} รายการ`;
+
+      if (txs.length === 0) {
+        txBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400 text-xs">ยังไม่มีประวัติการทำรายการในหมวดนี้</td></tr>`;
+        return;
+      }
+
+      txBody.innerHTML = txs.map(tx => {
+        const typeMeta = getTxTypeMeta(tx);
+        let detailText = '';
+        let amtClass = 'text-slate-900 font-bold';
+        let amtFormatted = '';
+
+        if (tx.type === 'deposit') {
+          detailText = getAccountName(tx.targetAccount);
+          amtClass = 'text-emerald-600 font-bold';
+          amtFormatted = '+' + fmtTHB(tx.amount);
+        } else if (tx.type === 'transfer') {
+          detailText = `${getAccountName(tx.fromAccount)} ➔ ${getAccountName(tx.toAccount)}`;
+          amtClass = 'text-sky-700 font-bold';
+          amtFormatted = fmtTHB(tx.amount);
+        } else if (tx.type === 'invest_thai') {
+          detailText = 'Dime! Save ➔ 🇹🇭 พอร์ตหุ้นไทย';
+          amtClass = 'text-amber-700 font-bold';
+          amtFormatted = '-' + fmtTHB(tx.amount);
+        } else if (tx.type === 'invest_foreign') {
+          detailText = 'Dime! Save ➔ 🌍 พอร์ตหุ้นต่างประเทศ';
+          amtClass = 'text-purple-700 font-bold';
+          amtFormatted = '-' + fmtTHB(tx.amount);
+        } else if (tx.type === 'withdraw_investment') {
+          const srcName = tx.sourceInvestment === 'thai' ? '🇹🇭 หุ้นไทย' : '🌍 หุ้นต่างประเทศ';
+          detailText = `${srcName} ➔ ${getAccountName(tx.toAccount)} (ตัดต้น: ${fmtTHB(tx.principalDeducted)})`;
+          amtClass = 'text-indigo-700 font-bold';
+          amtFormatted = '+' + fmtTHB(tx.amountReceived);
+        } else if (tx.type === 'expense') {
+          detailText = `${getAccountName(tx.fromAccount)} (${tx.category || 'ทั่วไป'})`;
+          amtClass = 'text-rose-600 font-bold';
+          amtFormatted = '-' + fmtTHB(tx.amount);
+        }
+
+        return `
+          <tr class="hover:bg-slate-50/70 transition">
+            <td class="py-2.5 px-3 text-slate-500 font-medium whitespace-nowrap">${tx.date}</td>
+            <td class="py-2.5 px-3 whitespace-nowrap">
+              <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md ${typeMeta.badgeClass}">
+                ${typeMeta.icon} ${typeMeta.name}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 font-semibold text-slate-800">${detailText}</td>
+            <td class="py-2.5 px-3 text-slate-500">${tx.note || '-'}</td>
+            <td class="py-2.5 px-3 text-right whitespace-nowrap ${amtClass}">${amtFormatted}</td>
+            <td class="py-2.5 px-2 text-center whitespace-nowrap space-x-1">
+              <button onclick="openEditTxModal('${tx.id}')" class="text-blue-500 hover:text-blue-700 p-1" title="แก้ไขรายการ">
+                ✏️
+              </button>
+              <button onclick="deleteTransaction('${tx.id}')" class="text-rose-400 hover:text-rose-600 p-1" title="ลบรายการ">
+                🗑️
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderApp() {
+      // 1. Calculate Ledgers
+      const ledger = computeLedger(appData.initialBalances, appData.transactions);
+
+      // 2. Render Top KPI Cards
+      document.getElementById('kpiNetWorth').innerText = fmtTHB(ledger.net_worth);
+      document.getElementById('kpiCashPart').innerText = fmtTHB(ledger.total_cash);
+      document.getElementById('kpiInvestPart').innerText = fmtTHB(ledger.total_invested);
+
+      document.getElementById('kpiTotalCash').innerText = fmtTHB(ledger.total_cash);
+      document.getElementById('kpiSubMake').innerText = fmtTHB(ledger.make_kbank);
+      document.getElementById('kpiSubDime').innerText = fmtTHB(ledger.dime_save);
+
+      const cashRatio = ledger.net_worth > 0 ? (ledger.total_cash / ledger.net_worth) * 100 : 0;
+      document.getElementById('kpiCashRatio').innerText = `${cashRatio.toFixed(1)}% ของสินทรัพย์`;
+
+      document.getElementById('kpiTotalInvested').innerText = fmtTHB(ledger.total_invested);
+      document.getElementById('kpiInvestedThai').innerText = fmtTHB(ledger.invested_thai);
+      document.getElementById('kpiInvestedForeign').innerText = fmtTHB(ledger.invested_foreign);
+
+      const investRatio = ledger.net_worth > 0 ? (ledger.total_invested / ledger.net_worth) * 100 : 0;
+      document.getElementById('kpiInvestedRatio').innerText = `${investRatio.toFixed(1)}% ของสินทรัพย์`;
+
+      // 3. Render Cash Accounts & Monthly Savings Comparison Card
+      document.getElementById('cardBalMakeKBank').innerText = fmtTHB(ledger.make_kbank);
+      document.getElementById('cardBalDimeSave').innerText = fmtTHB(ledger.dime_save);
+      renderMonthlySavingsCard();
+
+      // 4. Render Donut Chart
+      renderDonutChart(ledger.make_kbank, ledger.dime_save, ledger.invested_thai, ledger.invested_foreign, ledger.net_worth);
+
+      // 5. Render Transaction History Table
+      renderTransactionTable();
+
+      // 6. Update Form contextual hints
+      setTxType(currentTxType);
+
+      // 7. Latest Return Badge
+      const rets = appData.monthlyReturns || [];
+      if (rets.length > 0) {
+        const last = rets[rets.length - 1];
+        const isPos = last.percent >= 0;
+        const b = document.getElementById('badgeLatestReturn');
+        b.innerText = `ล่าสุด (${formatThaiMonthShort(last.month)}): ${isPos ? '+' : ''}${last.percent.toFixed(2)}%`;
+        b.className = `text-xs font-semibold px-2 py-0.5 rounded-full ${isPos ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`;
+      }
+
+      // 8. Render Todos
+      const todoBox = document.getElementById('todoListContainer');
+      const todos = appData.todos || [];
+      const doneCount = todos.filter(t => t.completed).length;
+      document.getElementById('todoProgressLabel').innerText = `เสร็จ ${doneCount}/${todos.length} รายการ`;
+      document.getElementById('todoProgressBar').style.width = `${todos.length > 0 ? (doneCount / todos.length) * 100 : 0}%`;
+
+      if (todos.length === 0) {
+        todoBox.innerHTML = `<div class="text-xs text-slate-400 text-center py-4">ไม่มีรายการ To-Do</div>`;
+      } else {
+        todoBox.innerHTML = todos.map(t => `
+          <div class="flex items-center justify-between p-2 rounded-xl border border-slate-100 ${t.completed ? 'bg-slate-50/60' : 'bg-white shadow-2xs'} hover:border-slate-200 transition group">
+            <label class="flex items-center gap-2 cursor-pointer flex-1 text-xs">
+              <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTodo('${t.id}')" class="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
+              <span class="${t.completed ? 'line-through text-slate-400' : 'text-slate-700 font-medium'}">
+                ${t.text}
+              </span>
+            </label>
+            <button onclick="deleteTodo('${t.id}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 text-xs px-1">
+              &times;
+            </button>
+          </div>
+        `).join('');
+      }
+
+      // 9. Render Line Chart
+      renderLineChart();
+      if (isReturnsTableOpen) renderReturnsTable();
+    }
+
+    window.addEventListener('resize', () => {
+      renderLineChart();
+    });
+
+    function initDateInputs() {
+      const now = new Date();
+      const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const ymd = now.toISOString().split('T')[0];
+      const mInput = document.getElementById('lineMonthInput');
+      const dInput = document.getElementById('txInputDate');
+      if (mInput && !mInput.value) mInput.value = ym;
+      if (dInput && !dInput.value) dInput.value = ymd;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      applyTheme();
+      initDateInputs();
+      renderApp();
+    });
+
+    applyTheme();
+    initDateInputs();
+    renderApp();
+  </script>
+</body>
+</html>
